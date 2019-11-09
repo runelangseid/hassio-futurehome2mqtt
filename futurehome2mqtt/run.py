@@ -1,0 +1,119 @@
+import paho.mqtt.client as mqtt
+import os, sys, time
+import pyfimptoha.client as fimp
+
+"""
+todo Refactor these functions, move to pyfimotopa/client.py
+"""
+# The callback for when the client receives a CONNACK response from the server.
+def on_connect(client, userdata, flags, rc):
+    global connected
+
+    if rc == 0:
+        connected = True
+        print("Connected successfull")
+    else:
+        connected = False
+        print("Could not connect. Result code: " + str(rc))
+
+def on_disconnect(client, userdata, rc):
+    global connected
+
+    connected = False
+    print("Disconnected... Result code: " + str(rc))
+
+def do_connect():
+    client = mqtt.Client(client_id)
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+
+    client.username_pw_set(username, password)
+    client.connect(server, port, 60)
+    return client
+
+def serve(client):
+    global connected
+    f = fimp.Client(client)
+
+    # fimp discover
+    f.send_fimp_discovery()
+    time.sleep(2)
+    f.publish_components()
+    time.sleep(2)
+    # Listen on fimp and homeassistant topics
+    f.listen_ha()
+    f.listen_fimp()
+
+    print("Sleeping forever...")
+    while True:
+        if not connected:
+            print("No longer connected... Exiting")
+            break
+
+        time.sleep(10)
+
+# def create_binary_sensor(client):
+#     """
+#     Test function for creating an binary sensor
+#     """
+#     t = "homeassistant/binary_sensor/garden/config"
+#     p = '{"name": "garden", "device_class": "motion", "state_topic": "homeassistant/binary_sensor/garden/state"}'
+#     client.publish(t, p)
+
+#     t = "homeassistant/binary_sensor/garden/state"
+#     p = "OFF"
+#     client.publish(t, p)
+
+#     time.sleep(3)
+#     p = "ON"
+#     client.publish(t, p)
+
+
+if __name__ == "__main__":
+    connected = None
+
+    server = os.environ.get('FIMPSERVER')
+    username = os.environ.get('FIMPUSERNAME')
+    password = os.environ.get('FIMPPASSWORD')
+    port = int(os.environ.get('FIMPPORT'))
+    client_id = os.environ.get('CLIENT_ID')
+
+    print('Connection to ' + server)
+    print('User: ', username)
+    print('Port: ', port)
+    print('Client id: ', client_id)
+
+    if len(sys.argv) > 1 and sys.argv[1] == "help":
+        print(
+            'Usage: \n"python run.py serve" to fetch data form fimp and push components to Home Assistant'
+        )
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "serve":
+        client = do_connect()
+        client.loop_start()
+
+        time.sleep(2)
+
+        if connected:
+            serve(client)
+
+
+    # elif len(sys.argv) > 1 and sys.argv[1] == "discover":
+    #     client = do_connect()
+    #     client.loop_start()
+    #     f = fimp.Client(client)
+
+    #     # fimp discover
+    #     f.send_fimp_discovery()
+    #     time.sleep(3)
+
+    # elif len(sys.argv) > 1 and sys.argv[1] == "listenha":
+    #     client = do_connect()
+    #     client.loop_start()
+    #     f = fimp.Client(client)
+    #     f.listen_ha()
+    #     f.listen_fimp_event()
+
+        # print("Sleeping forever...")
+        # while True:
+        #     time.sleep(60)

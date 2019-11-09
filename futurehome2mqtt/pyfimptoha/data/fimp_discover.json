@@ -1,0 +1,21 @@
+{
+    "ctime": "",
+    "props": {},
+    "resp_to": "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:flow1",
+    "serv": "vinculum",
+    "src": "homeassistant",
+    "tags": [],
+    "type": "cmd.pd7.request",
+    "uid": "09936904-8ec8-4280-9285-945d77bd0a74",
+    "val": {
+        "cmd": "get",
+        "component": null,
+        "id": null,
+        "param": {
+            "components": ["device"]
+        },
+        "requestId": 7294000000007
+    },
+    "val_t": "object",
+    "ver": "1"
+}

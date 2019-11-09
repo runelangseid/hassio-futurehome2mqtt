@@ -1,0 +1,5 @@
+export FIMPSERVER=
+export FIMPUSERNAME=
+export FIMPPASSWORD=
+export FIMPPORT=1884
+export CLIENT_ID=fimp2mqtt

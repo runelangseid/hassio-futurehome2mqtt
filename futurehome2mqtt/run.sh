@@ -1,0 +1,12 @@
+#!/usr/bin/env bashio
+set +u
+
+CONFIG_PATH=/data/options.json
+export FIMPSERVER=$(jq --raw-output ".fimpserver" $CONFIG_PATH)
+export FIMPUSERNAME=$(jq --raw-output ".fimpusername" $CONFIG_PATH)
+export FIMPPASSWORD=$(jq --raw-output ".fimppassword" $CONFIG_PATH)
+export FIMPPORT=$(jq --raw-output ".fimpport" $CONFIG_PATH)
+export CLIENT_ID=$(jq --raw-output ".client_id" $CONFIG_PATH)
+
+echo Starting Futurehome FIMP to MQTT
+python3 run.py serve
