@@ -70,8 +70,9 @@ def serve(client):
 
 
 if __name__ == "__main__":
-    connected = None
+    print('Starting service...')
 
+    connected = None
     server = os.environ.get('FIMPSERVER')
     username = os.environ.get('FIMPUSERNAME')
     password = os.environ.get('FIMPPASSWORD')
