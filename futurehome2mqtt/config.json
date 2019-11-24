@@ -1,6 +1,6 @@
 {
     "name": "Future FIMP integration",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "slug": "futurehome_fimp",
     "description": "Futurehome FIMP integration",
     "url": "https://github.com/runelangseid/hassio-futurehome2mqtt",
@@ -9,6 +9,7 @@
     "boot": "auto",
     "hassio_api": true,
     "hassio_role": "default",
+    "homeassistant_api": true,
     "options": {
         "fimpserver": "futurehome.local",
         "fimpusername": "mqttuser",
