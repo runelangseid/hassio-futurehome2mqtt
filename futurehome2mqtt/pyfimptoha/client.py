@@ -20,7 +20,6 @@ class Client:
     _uptime = 0
     # todo Add verbose as a env var
     _verbose = False
-    _components = None
     _listen_ha = False
     _listen_fimp_event = False
 
