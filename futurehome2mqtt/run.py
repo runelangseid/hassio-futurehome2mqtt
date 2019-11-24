@@ -31,9 +31,9 @@ def do_connect():
     client.connect(server, port, 60)
     return client
 
-def serve(client):
+def serve(client, selected_devices):
     global connected
-    f = fimp.Client(client)
+    f = fimp.Client(client, selected_devices)
 
     # fimp discover
     f.send_fimp_discovery()
@@ -96,25 +96,5 @@ if __name__ == "__main__":
         time.sleep(2)
 
         if connected:
-            serve(client)
-
-
-    # elif len(sys.argv) > 1 and sys.argv[1] == "discover":
-    #     client = do_connect()
-    #     client.loop_start()
-    #     f = fimp.Client(client)
-
-    #     # fimp discover
-    #     f.send_fimp_discovery()
-    #     time.sleep(3)
-
-    # elif len(sys.argv) > 1 and sys.argv[1] == "listenha":
-    #     client = do_connect()
-    #     client.loop_start()
-    #     f = fimp.Client(client)
-    #     f.listen_ha()
-    #     f.listen_fimp_event()
-
-        # print("Sleeping forever...")
-        # while True:
-        #     time.sleep(60)
+            serve(client, None)
+            # serve(client, [7, 37])

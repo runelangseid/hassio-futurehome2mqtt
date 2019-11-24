@@ -21,7 +21,14 @@ be developed as we learn more about the FIMP protocol.
 ## Supported devices
 
 * Dimmers: On/off and brightness. Tested with Fibaro dimmer 2
-    * Sensors (like power usage) is not supported. Should be simple to add though.
+* Sensors (limited support)
+ * Battery
+ * Illuminance
+ * Power usage
+ * Temperature
+
+Once sensors are registered they work without the need of the brigde functionality provided by this addon, which is good.
+
 
 # Configuration and installation
 

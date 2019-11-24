@@ -1,13 +1,16 @@
 import json, time
 import paho.mqtt.client as mqtt
 from pyfimptoha.light import Light
+from pyfimptoha.sensor import Sensor
 
 class Client:
     components = {}
     lights = []
+    sensors = []
 
     _devices = [] # discovered fimp devices
     _mqtt = None
+    _selected_devices = None
     _topic_discover = "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:flow1"
     _topic_fimp_event = "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/"
     _topic_ha = "homeassistant/"
@@ -15,7 +18,9 @@ class Client:
     _listen_ha = False
     _listen_fimp_event = False
 
-    def __init__(self, mqtt=None):
+    def __init__(self, mqtt=None, selected_devices=None):
+        self._selected_devices = selected_devices
+
         if mqtt:
             self._mqtt = mqtt
             mqtt.on_message = self.on_message
@@ -42,7 +47,7 @@ class Client:
 
     def publish_messages(self, messages):
         """Publish list of messages over MQTT"""
-        print('Publish messages', messages)
+        # print('Publish messages', messages)
         if self._mqtt and messages:
             for data in messages:
                 self._mqtt.publish(data["topic"], data["payload"])
@@ -57,7 +62,11 @@ class Client:
 
             # Subscribe to : pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:flow1
             self._mqtt.subscribe(self._topic_discover)
-            self._mqtt.publish(topic, json.dumps(data))
+            message = {
+                'topic': topic,
+                'payload': json.dumps(data)
+            }
+            self.publish_messages([message])
 
     def publish_components(self):
         """
@@ -65,21 +74,14 @@ class Client:
         """
 
         # - Lights
-        for light in self.lights:
-            # todo Add support for Wall plugs with functionality 'Lighting'
+        # todo Add support for Wall plugs with functionality 'Lighting'
+        for unique_id, component in self.components.items():
+            #  Ignore everything except self._selected_devices if set
+            if self._selected_devices and int(component._address) not in self._selected_devices:
+                continue
 
-            # debug Exclude all but light 7
-            # if light._address != "7":
-            #     continue
-
-            component = light.get_component()
-
-            # print("Publishing lights")
-            # print("- Unique id", light._address, light._unique_id)
-            # print("- component", component)
-
-            # Create light component
-            self._mqtt.publish(component["topic"], component["payload"])
+            message = component.get_component()
+            self.publish_messages([message])
 
         # Publish init states
         print("Publishing lights init state")
@@ -87,7 +89,7 @@ class Client:
         for light in self.lights:
             init_state = light.get_state()
             for data in init_state:
-                self._mqtt.publish(data["topic"], data["payload"])
+                self.publish_messages([data])
                 time.sleep(0.1)
 
     def load_json_device(self, filename):
@@ -100,7 +102,6 @@ class Client:
 
     def create_components(self, devices):
         """ Creates HA components out of FIMP devices"""
-        discovery = list()
         self._devices = devices
 
         for device in self._devices:
@@ -113,51 +114,40 @@ class Client:
             functionality = device["functionality"]
             room = device["room"]
 
+            if self._selected_devices and int(address) not in self._selected_devices:
+                continue
+
+            print("Creating: ", address, name)
+
             for service_name in device["services"]:
-                supported_services = ["sensor_power", "out_lvl_switch"]
-                service = device["services"][service_name]
-                if service_name not in supported_services:
-                    continue
-
-                component_address = address + "-" + service_name
-
-                # Figure out ha component
                 component = None
-                if service_name.startswith("sensor_"):
-                    component = "sensor"
-                elif service_name.startswith("battery"):
-                    component = "sensor"
-                elif (
+                component_address = address + "-" + service_name
+                service = device["services"][service_name]
+
+                if (
                     service_name.startswith("out_lvl_switch")
                     and functionality == "lighting"
                 ):
                     component = "light"
+                elif service_name in Sensor.supported_services():
+                    component = "sensor"
 
-                # Generate ha device
-                # topic: homeassistant/light/7_sensor_power/config
-                topic = "homeassistant/%s/%s/config" % (component, component_address)
+                if not component:
+                    print("- Skipping %s. Not yet supported" % service_name)
+                    continue
 
-                payload = {
-                    "name": "%s (%s)" % (name, service_name),
-                    "state_topic": topic.replace("config", "state"),
-                }
+                print("- Creating component %s - %s" % (component, service_name))
 
+                # todo Add support for binary_sensor
                 if component == "sensor":
-                    unit = service["props"]["sup_units"][0]
-                    payload["unit_of_measurement"] = unit
+                    sensor = Sensor(service_name, service, device)
+                    self.sensors.append(sensor)
+                    self.components[sensor.unique_id] = sensor
+
                 elif component == "light":
                     light = Light(service_name, service, device)
                     self.lights.append(light)
                     self.components[light.unique_id] = light
-
-                new_device = {
-                    "topic": topic,
-                    "payload": json.dumps(payload),
-                }
-                discovery.append(new_device)
-
-        self._components = discovery
-        return discovery
 
     def process_ha(self, topic, payload):
         """
@@ -187,7 +177,7 @@ class Client:
                     if light.unique_id == unique_id:
                         messages = light.handle_ha(topic_type, payload)
 
-                        print("messages", messages)
+                        print("process ha: messages", messages)
                         self.publish_messages(messages)
 
         return
