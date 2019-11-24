@@ -18,6 +18,8 @@ class Client:
     _topic_fimp_event = "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/"
     _topic_ha = "homeassistant/"
     _uptime = 0
+    # todo Add verbose as a env var
+    _verbose = False
     _components = None
     _listen_ha = False
     _listen_fimp_event = False
@@ -34,6 +36,12 @@ class Client:
             self.check_restarts()
 
         self.start()
+
+    def log(self, s, verbose = False):
+        '''Log'''
+        if verbose and not self._verbose:
+            return
+        print(s)
 
     def start(self):
         # fimp discover
@@ -183,7 +191,7 @@ class Client:
             if self._selected_devices and int(address) not in self._selected_devices:
                 continue
 
-            print("Creating: ", address, name)
+            self.log("Creating: " + address + ' ' + name)
 
             for service_name in device["services"]:
                 component = None
@@ -199,10 +207,10 @@ class Client:
                     component = "sensor"
 
                 if not component:
-                    print("- Skipping %s. Not yet supported" % service_name)
+                    self.log("- Skipping %s. Not yet supported" % service_name, True)
                     continue
 
-                print("- Creating component %s - %s" % (component, service_name))
+                self.log("- Creating component %s - %s" % (component, service_name), True)
 
                 # todo Add support for binary_sensor
                 if component == "sensor":
@@ -243,7 +251,8 @@ class Client:
                     if light.unique_id == unique_id:
                         messages = light.handle_ha(topic_type, payload)
 
-                        print("process ha: messages", messages)
+                        if self._verbose:
+                            print("process ha: messages", messages)
                         self.publish_messages(messages)
 
         return
