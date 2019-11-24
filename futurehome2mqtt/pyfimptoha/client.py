@@ -32,10 +32,12 @@ class Client:
             self._mqtt = mqtt
             mqtt.on_message = self.on_message
 
-        if self._hassio_token:
-            self.check_restarts()
-
         self.start()
+
+        if self._hassio_token:
+            threading.Timer(20, self.check_restarts).start()
+            # self.check_restarts()
+
 
     def log(self, s, verbose = False):
         '''Log'''
