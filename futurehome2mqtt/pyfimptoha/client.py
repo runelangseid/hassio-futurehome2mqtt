@@ -74,13 +74,18 @@ class Client:
                 url,
                 headers=headers
             )
-            json = r.json()
-            uptime = int(float(json['state']))
-            print("check_restarts: Current uptime: " + str(uptime))
+
+            if r.status_code == 200:
+                json = r.json()
+                uptime = int(float(json['state']))
+                print("check_restarts: Current uptime: " + str(uptime))
 
         except requests.exceptions.RequestException as e:
             print("check_restarts: Could not contact HA for uptime details")
             print(e)
+        except:
+            print('Something went wrong')
+
 
         # if not self._uptime or self._uptime > uptime:
         if uptime == None:
