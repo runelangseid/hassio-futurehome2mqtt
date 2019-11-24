@@ -33,16 +33,7 @@ def do_connect():
 
 def serve(client, selected_devices):
     global connected
-    f = fimp.Client(client, selected_devices)
-
-    # fimp discover
-    f.send_fimp_discovery()
-    time.sleep(2)
-    f.publish_components()
-    time.sleep(2)
-    # Listen on fimp and homeassistant topics
-    f.listen_ha()
-    f.listen_fimp()
+    f = fimp.Client(client, selected_devices, token)
 
     print("Sleeping forever...")
     while True:
@@ -77,12 +68,14 @@ if __name__ == "__main__":
     username = os.environ.get('FIMPUSERNAME')
     password = os.environ.get('FIMPPASSWORD')
     port = int(os.environ.get('FIMPPORT'))
+    token = os.environ.get('HASSIO_TOKEN')
     client_id = os.environ.get('CLIENT_ID')
 
     print('Connection to ' + server)
     print('User: ', username)
     print('Port: ', port)
     print('Client id: ', client_id)
+    print('Hassio token: ', token[:5] + "...")
 
     if len(sys.argv) > 1 and sys.argv[1] == "help":
         print(

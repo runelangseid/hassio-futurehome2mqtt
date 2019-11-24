@@ -1,5 +1,6 @@
 import json, time
 import paho.mqtt.client as mqtt
+import requests, threading
 from pyfimptoha.light import Light
 from pyfimptoha.sensor import Sensor
 
@@ -9,21 +10,86 @@ class Client:
     sensors = []
 
     _devices = [] # discovered fimp devices
+    _hassio_token = None
+    _ha_host = 'hassio'
     _mqtt = None
     _selected_devices = None
     _topic_discover = "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:flow1"
     _topic_fimp_event = "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/"
     _topic_ha = "homeassistant/"
+    _uptime = 0
     _components = None
     _listen_ha = False
     _listen_fimp_event = False
 
-    def __init__(self, mqtt=None, selected_devices=None):
+    def __init__(self, mqtt=None, selected_devices=None, token=None):
         self._selected_devices = selected_devices
+        self._hassio_token = token
 
         if mqtt:
             self._mqtt = mqtt
             mqtt.on_message = self.on_message
+
+        if self._hassio_token:
+            self.check_restarts()
+
+        self.start()
+
+    def start(self):
+        # fimp discover
+        self.send_fimp_discovery()
+        time.sleep(2)
+        self.publish_components()
+        time.sleep(2)
+        # Listen on fimp and homeassistant topics
+        self.listen_ha()
+        self.listen_fimp()
+
+    def check_restarts(self):
+        print("Check for HA restart...")
+
+        endpoint_prefix = ''
+        if self._ha_host == 'hassio':
+            endpoint_prefix = 'homeassistant/'
+
+        url = 'http://%s/%sapi/states/sensor.time_online' % (self._ha_host, endpoint_prefix)
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + self._hassio_token,
+        }
+
+        print('check_restarts: Uptime start', self._uptime)
+        uptime = None
+        try:
+            r = requests.get(
+                url,
+                headers=headers
+            )
+            json = r.json()
+            uptime = int(float(json['state']))
+            print("check_restarts: Current uptime: " + str(uptime))
+
+        except requests.exceptions.RequestException as e:
+            print("check_restarts: Could not contact HA for uptime details")
+            print(e)
+
+        # if not self._uptime or self._uptime > uptime:
+        if uptime == None:
+            print("check_restarts: Connection problem: Could not get uptime from HA. Waiting 180 sec before retrying")
+            threading.Timer(180, self.check_restarts).start()
+            return
+
+        if self._uptime == 0:
+            self._uptime = uptime
+
+        if self._uptime > uptime:
+            print("check_restarts: HA has restarted. Doing auto discovery")
+            self._uptime = uptime
+            self.start()
+
+        print('check_restarts: Uptime end', self._uptime)
+
+        threading.Timer(60, self.check_restarts).start()
 
     # The callback for when a PUBLISH message is received from the server.
     def on_message(self, client, userdata, msg):
