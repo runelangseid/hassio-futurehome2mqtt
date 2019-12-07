@@ -55,7 +55,7 @@ class Client:
         self.listen_fimp()
 
     def check_restarts(self):
-        print("Check for HA restart...")
+        # print("Check for HA restart...")
 
         endpoint_prefix = ''
         if self._ha_host == 'hassio':
@@ -67,7 +67,7 @@ class Client:
             'Authorization': 'Bearer ' + self._hassio_token,
         }
 
-        print('check_restarts: Uptime start', self._uptime)
+        #print('check_restarts: Uptime start', self._uptime)
         uptime = None
         try:
             r = requests.get(
@@ -78,7 +78,7 @@ class Client:
             if r.status_code == 200:
                 json = r.json()
                 uptime = int(float(json['state']))
-                print("check_restarts: Current uptime: " + str(uptime))
+                # print("check_restarts: Current uptime: " + str(uptime))
 
         except requests.exceptions.RequestException as e:
             print("check_restarts: Could not contact HA for uptime details")
@@ -101,7 +101,7 @@ class Client:
             self._uptime = uptime
             self.start()
 
-        print('check_restarts: Uptime end', self._uptime)
+        # print('check_restarts: Uptime end', self._uptime)
 
         threading.Timer(60, self.check_restarts).start()
 
