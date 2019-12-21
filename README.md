@@ -47,6 +47,12 @@ mqtt:
   port: 1884
   discovery: true
   discovery_prefix: homeassistant
+
+# Uptime sensor to detect if Home Assistant is restated
+sensor:
+  - platform: uptime
+    name: Time Online
+    unit_of_measurement: minutes
 ```
 
 ### 2. Install add-on
