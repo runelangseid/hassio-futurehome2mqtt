@@ -18,14 +18,17 @@ class Client:
     _topic_fimp_event = "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/"
     _topic_ha = "homeassistant/"
     _uptime = 0
-    # todo Add verbose as a env var
     _verbose = False
     _listen_ha = False
     _listen_fimp_event = False
 
-    def __init__(self, mqtt=None, selected_devices=None, token=None):
+    def __init__(self, mqtt=None, selected_devices=None, token=None, ha_host=None, debug=False):
         self._selected_devices = selected_devices
         self._hassio_token = token
+        self._verbose = debug
+
+        if ha_host:
+            self._ha_host = ha_host
 
         if mqtt:
             self._mqtt = mqtt
@@ -127,7 +130,9 @@ class Client:
 
     def publish_messages(self, messages):
         """Publish list of messages over MQTT"""
-        # print('Publish messages', messages)
+        if self._verbose:
+            print('Publish messages', messages)
+
         if self._mqtt and messages:
             for data in messages:
                 self._mqtt.publish(data["topic"], data["payload"])

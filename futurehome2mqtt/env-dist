@@ -1,5 +1,8 @@
-export FIMPSERVER=
+export FIMPSERVER=futurehome_hub_ip
 export FIMPUSERNAME=
 export FIMPPASSWORD=
 export FIMPPORT=1884
 export CLIENT_ID=fimp2mqtt
+export DEBUG=True
+export HA_HOST=homeassistant_ip:8123
+export HASSIO_TOKEN=xxx

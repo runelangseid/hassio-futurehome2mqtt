@@ -48,7 +48,7 @@ mqtt:
   discovery: true
   discovery_prefix: homeassistant
 
-# Uptime sensor to detect if Home Assistant is restated
+# Uptime sensor to detect if Home Assistant is restarted
 sensor:
   - platform: uptime
     name: Time Online
@@ -138,12 +138,14 @@ pip install -r requirements.txt
 
 ### Configuration
 
-1. Setup configuration
+1. Create an Long-lived Access token. Needed to detect HA restart
+
+2. Setup configuration
     ```
     cp env-div .env
     ```
-2. Edit `.env` and add `hostname`, `username` and `password`
+3. Edit `.env` and fill in hostnames and credentials
 
-3. Run `source .env`
+4. Run `source .env`
 
-4. Run `python run.py serve`
+5. Run `python run.py serve`
