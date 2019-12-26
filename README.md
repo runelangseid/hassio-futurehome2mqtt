@@ -22,10 +22,11 @@ be developed as we learn more about the FIMP protocol.
 
 * Dimmers: On/off and brightness. Tested with Fibaro dimmer 2
 * Sensors (limited support)
- * Battery
- * Illuminance
- * Power usage
- * Temperature
+  * Battery
+  * Illuminance
+  * Power usage
+  * Temperature
+* Scene control. Exposed as sensor. Tested with Fibaro button
 
 Once sensors are registered they work without the need of the brigde functionality provided by this addon, which is good.
 

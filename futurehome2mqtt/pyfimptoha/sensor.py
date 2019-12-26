@@ -19,6 +19,7 @@ class Sensor(Base):
     '''
 
     _device_class = None
+    _expire_after = 0
     _icon = None
     _name_prefix = ""
     _unit_of_measurement = None
@@ -27,18 +28,19 @@ class Sensor(Base):
     def __init__(self, service_name, service, device):
         super().__init__(service_name, service, device)
 
-        self._name = self.name_prefix + self._name
         self._state_topic = "pt:j1/mt:evt" + self._service['addr']
 
         # todo Move _value_template to set_type(). round(0) it probably not a good idea
         self._value_template = "{{ value_json.val | round(0) }}"
 
         self.set_type()
+        self._name = self.name_prefix + self._name
 
     @staticmethod
     def supported_services():
         sensors = [
             'battery',
+            'scene_ctrl',
             'sensor_lumin',
             'sensor_power',
             'sensor_temp',
@@ -66,7 +68,7 @@ class Sensor(Base):
         device class based on "service_name"
         '''
 
-        device_class = ""
+        device_class = None
         prefix = ""
         unit_of_measurement = ""
 
@@ -87,6 +89,11 @@ class Sensor(Base):
             device_class = "temperature"
             prefix = "Temperatur: "
             unit_of_measurement = "°C"
+        elif self._service_name  == "scene_ctrl":
+            prefix = "Scene: "
+            self._value_template = "{{ value_json.val }}"
+            self._expire_after = 1
+
 
         self._device_class = device_class
         self._name_prefix = prefix
@@ -97,12 +104,17 @@ class Sensor(Base):
 
         payload = {
             "name": self._name,
-            "device_class": self._device_class,
             "state_topic": self._state_topic,
             "unit_of_measurement": self.unit_of_measurement,
             "unique_id": self.unique_id,
             "value_template": self._value_template,
         }
+
+        if self._device_class:
+            payload["device_class"] = self._device_class
+
+        if self._expire_after:
+            payload["expire_after"] = self._expire_after
 
         if self._icon:
             payload["icon"] = self.icon

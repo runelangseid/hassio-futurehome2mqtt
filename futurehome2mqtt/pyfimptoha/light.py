@@ -24,9 +24,6 @@ class Light:
 
     topics = list()
 
-    _payload_on: True
-    _payload_off: False
-
     # def __init__(self, address, name, room, service_name, service):
     def __init__(self, service_name, service, device):
         self._address = device["fimp"]["address"]
