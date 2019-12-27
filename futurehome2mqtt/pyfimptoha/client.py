@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import requests, threading
 from pyfimptoha.light import Light
 from pyfimptoha.sensor import Sensor
+from pyfimptoha.mode import Mode
 
 class Client:
     components = {}
@@ -33,6 +34,13 @@ class Client:
         if mqtt:
             self._mqtt = mqtt
             mqtt.on_message = self.on_message
+
+        # Add Modus sensor (home, sleep, away and vacation)
+        # todo Find a way to auto discover the value. Sensor value is currently
+        # empty until set by the user
+        mode = Mode()
+        message = mode.get_component()
+        self.publish_messages([message])
 
         self.start()
 

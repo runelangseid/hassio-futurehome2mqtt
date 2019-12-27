@@ -27,6 +27,7 @@ be developed as we learn more about the FIMP protocol.
   * Power usage
   * Temperature
 * Scene control. Exposed as sensor. Tested with Fibaro button
+* Modus: home, away, sleep and vacation (`sensor.modus`, read only)
 
 Once sensors are registered they work without the need of the brigde functionality provided by this addon, which is good.
 
