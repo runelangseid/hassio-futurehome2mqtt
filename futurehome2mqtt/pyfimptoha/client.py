@@ -3,12 +3,14 @@ import paho.mqtt.client as mqtt
 import requests, threading
 from pyfimptoha.light import Light
 from pyfimptoha.sensor import Sensor
+from pyfimptoha.switch import Switch
 from pyfimptoha.mode import Mode
 
 class Client:
     components = {}
     lights = []
     sensors = []
+    switches = []
 
     _devices = [] # discovered fimp devices
     _hassio_token = None
@@ -169,7 +171,7 @@ class Client:
         # - Lights
         # todo Add support for Wall plugs with functionality 'Lighting'
         for unique_id, component in self.components.items():
-            #  Ignore everything except self._selected_devices if set
+            #  When debugging: Ignore everything except self._selected_devices if set
             if self._selected_devices and int(component._address) not in self._selected_devices:
                 continue
 
@@ -177,13 +179,28 @@ class Client:
             self.publish_messages([message])
 
         # Publish init states
-        print("Publishing lights init state")
+        print("Publishing init states")
+        print("- lights")
         time.sleep(0.5)
         for light in self.lights:
             init_state = light.get_state()
             for data in init_state:
                 self.publish_messages([data])
                 time.sleep(0.1)
+
+        print("- switches")
+        time.sleep(0.5)
+        for switch in self.switches:
+            init_state = switch.get_init_state()
+            self.publish_messages(init_state)
+            time.sleep(0.1)
+
+        print("- sensors")
+        time.sleep(0.5)
+        for sensor in self.sensors:
+            init_state = sensor.get_init_state()
+            self.publish_messages(init_state)
+            time.sleep(0.1)
 
     def load_json_device(self, filename):
         data = "{}"
@@ -207,6 +224,7 @@ class Client:
             functionality = device["functionality"]
             room = device["room"]
 
+            #  When debugging: Ignore everything except self._selected_devices if set
             if self._selected_devices and int(address) not in self._selected_devices:
                 continue
 
@@ -218,10 +236,16 @@ class Client:
                 service = device["services"][service_name]
 
                 if (
-                    service_name.startswith("out_lvl_switch")
-                    and functionality == "lighting"
+                    functionality == "lighting" and (
+                        service_name.startswith("out_bin_switch") or
+                        service_name.startswith("out_lvl_switch")
+                    )
                 ):
                     component = "light"
+                elif functionality == "appliance" and (
+                    service_name.startswith("out_bin_switch")
+                ):
+                    component = "switch"
                 elif service_name in Sensor.supported_services():
                     component = "sensor"
 
@@ -236,7 +260,10 @@ class Client:
                     sensor = Sensor(service_name, service, device)
                     self.sensors.append(sensor)
                     self.components[sensor.unique_id] = sensor
-
+                elif component == "switch":
+                    switch = Switch(service_name, service, device)
+                    self.switches.append(switch)
+                    self.components[switch.unique_id] = switch
                 elif component == "light":
                     light = Light(service_name, service, device)
                     self.lights.append(light)

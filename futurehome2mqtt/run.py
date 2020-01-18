@@ -73,6 +73,11 @@ if __name__ == "__main__":
     client_id = os.environ.get('CLIENT_ID')
     debug = os.environ.get('DEBUG')
 
+    if debug == 'True':
+        debug = True
+    else:
+        debug = False
+
     print('Connection to ' + server)
     print('User: ', username)
     print('Port: ', port)

@@ -2,14 +2,17 @@
 
 ## About
 
-The [Futurehome FIMP](https://github.com/futurehomeno/fimp-api) to MQTT add-on allows you to integrate the Futurehome
+This [Futurehome FIMP](https://github.com/futurehomeno/fimp-api) to MQTT add-on allows you to integrate the Futurehome
 Smarthub with Home Assistant by using the local MQTT broker inside the hub.
 
-While it is possible to configure Home Assistant agains this MQTT protocol
-directly is a lot of work, and auto discover is out in the blue.
+While it is possible to configure Home Assistant the FIMP protocol
+directly is a lot of work, and auto discovery is not possible.
 
 This addon work as a bridge between the [FIMP protocol](https://github.com/futurehomeno/fimp-api)
-and the MQTT message system prefered by Home Assistant.
+and the MQTT message system prefered by Home Assistant. In most cases the representation
+of the components talk directly via MQTT. However, due to limitations in the Light
+component of HA these devices are bridged though separate MQTT topics handled by this addon. At
+least I'm unable to do it without.
 
 The author of this addon recognize that this integration should be solved by a
 custom platform component for Home Assistant, but the bridge approach was used
@@ -18,19 +21,23 @@ to get something working.
 There are multiple caveats with the current approach so dedicated component should
 be developed as we learn more about the FIMP protocol.
 
-## Supported devices
+## Supported Futurehome devices
 
-* Dimmers: On/off and brightness. Tested with Fibaro dimmer 2
-* Sensors (limited support)
+* Appliances (switches in HA)
+  * Wall plugs like Fibaro Wall plug is supported
+* Lights (lights in HA)
+  * Dimmers - On/off and brightness. Tested with Fibaro dimmer 2
+  * Wall plugs like Fibaro Wall plug is *not* supported (yet)
+* Sensors (sensors in HA)
   * Battery
   * Illuminance
   * Power usage
   * Temperature
-* Scene control. Exposed as sensor. Tested with Fibaro button
+* Scene control. Exposed as sensor. Tested with Fibaro button, and Namron 4 channel (K8)
 * Modus: home, away, sleep and vacation (`sensor.modus`, read only)
 
-Once sensors are registered they work without the need of the brigde functionality provided by this addon, which is good.
-
+Everything execpt dimmers work without the need of the brigde functionality provided by this addon once they are auto discovered.
+These devices can talk to HA directly over MQTT while dimmers needs to be bridged via custom topics for now.
 
 # Configuration and installation
 
@@ -63,59 +70,6 @@ sensor:
 2) Install the addon 'Futurehome FIMP to MQTT'
 3) Configure the addon with the same parameters as before
 4) Start it. Supported devices should appear in the Home Assistant UI
-
-## Alternative FIMP integrations
-
-Below are examples on how to add Wall plugs and sensors manually to Home Assistant
-using MQTT. It is manual but it works.
-
-### Wall plug (Fibaro)
-
-Replace '34' with the address for the device in Futurehome.
-
-```
-switch:
-  #
-  # Kontor
-  #
-  # Wall plug
-  - platform: mqtt
-    name: "Wall plug (kontor)"
-    state_topic:   "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:out_bin_switch/ad:34_0"
-    command_topic: "pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:out_bin_switch/ad:34_0"
-    value_template: '{{ value_json.val }}'
-    payload_on:  '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":true,"val_t":"bool"}'
-    payload_off: '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":false,"val_t":"bool"}'
-    state_on: true
-    state_off: false
-```
-
-### Multi Sensor (Fibaro)
-
-Replace '37' with the address for the device in Futurehome.
-
-```
-  # Øye (kontor)
-  - platform: mqtt
-    name: "Batteri Kontor"
-    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:battery/ad:37_0"
-    unit_of_measurement: '%'
-    value_template: "{{ value_json.val }}"
-  - platform: mqtt
-    name: "Bevegelse Kontor"
-    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_presence/ad:37_0"
-    value_template: "{{ value_json.val }}"
-  - platform: mqtt
-    name: "Temperatur Kontor"
-    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_temp/ad:37_0"
-    unit_of_measurement: '°C'
-    value_template: "{{ value_json.val }}"
-  - platform: mqtt
-    name: "Lysstyrke Kontor"
-    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_lumin/ad:37_0"
-    unit_of_measurement: 'Lux'
-    value_template: "{{ value_json.val }}"
-```
 
 
 # Development
@@ -151,3 +105,57 @@ pip install -r requirements.txt
 4. Run `source .env`
 
 5. Run `python run.py serve`
+
+
+# Alternative FIMP integrations
+
+Below are examples on how to add Wall plugs and sensors manually to Home Assistant
+using MQTT without the use of this addon.
+
+## Wall plug (Fibaro)
+
+Replace '34' with the address for the device in Futurehome.
+
+```
+switch:
+  #
+  # Kontor
+  #
+  # Wall plug
+  - platform: mqtt
+    name: "Wall plug (kontor)"
+    state_topic:   "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:out_bin_switch/ad:34_0"
+    command_topic: "pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:out_bin_switch/ad:34_0"
+    value_template: '{{ value_json.val }}'
+    payload_on:  '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":true,"val_t":"bool"}'
+    payload_off: '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":false,"val_t":"bool"}'
+    state_on: true
+    state_off: false
+```
+
+## Multi Sensor (Fibaro)
+
+Replace '37' with the address for the device in Futurehome.
+
+```
+  # Øye (kontor)
+  - platform: mqtt
+    name: "Batteri Kontor"
+    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:battery/ad:37_0"
+    unit_of_measurement: '%'
+    value_template: "{{ value_json.val }}"
+  - platform: mqtt
+    name: "Bevegelse Kontor"
+    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_presence/ad:37_0"
+    value_template: "{{ value_json.val }}"
+  - platform: mqtt
+    name: "Temperatur Kontor"
+    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_temp/ad:37_0"
+    unit_of_measurement: '°C'
+    value_template: "{{ value_json.val }}"
+  - platform: mqtt
+    name: "Lysstyrke Kontor"
+    state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_lumin/ad:37_0"
+    unit_of_measurement: 'Lux'
+    value_template: "{{ value_json.val }}"
+```

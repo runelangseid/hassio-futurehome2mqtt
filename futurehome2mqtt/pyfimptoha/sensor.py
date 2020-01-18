@@ -25,16 +25,22 @@ class Sensor(Base):
     _unit_of_measurement = None
     _value_template = None
 
-    def __init__(self, service_name, service, device):
-        super().__init__(service_name, service, device)
+    _init_value = None
 
-        self._state_topic = "pt:j1/mt:evt" + self._service['addr']
+    def __init__(self, service_name, service, device):
+        '''
+        Example
+        service_name:   sensor_power
+        service (json): {'addr': '/rt:dev/rn:zw/ad:1/sv:sensor_power/ad:41_0' ...
+        device (json):  {'client': {'name': 'Ovn (gang)'}, 'fimp': {'adapter': 'zwave-ad', ...
+        '''
+        super().__init__(service_name, service, device, "sensor")
+        self._name = self.name_prefix + self._name
 
         # todo Move _value_template to set_type(). round(0) it probably not a good idea
         self._value_template = "{{ value_json.val | round(0) }}"
 
         self.set_type()
-        self._name = self.name_prefix + self._name
 
     @staticmethod
     def supported_services():
@@ -76,19 +82,31 @@ class Sensor(Base):
             device_class = "battery"
             prefix = "Batteri: "
             unit_of_measurement = "%"
+
+            if 'batteryPercentage' in self._device['param']:
+                self._init_value = self._device['param']['batteryPercentage']
         elif self._service_name == "sensor_lumin":
             device_class = "illuminance"
             prefix = "Belysningsstyrke: "
             unit_of_measurement = "Lux"
             self._icon = "mdi:ceiling-light"
+
+            if 'illuminance' in self._device['param']:
+                self._init_value = self._device['param']['illuminance']
         elif self._service_name == "sensor_power":
             device_class = "power"
             prefix = "Forbuk: "
             unit_of_measurement = "Watt"
+
+            if 'wattage' in self._device['param']:
+                self._init_value = self._device['param']['wattage']
         elif self._service_name  == "sensor_temp":
             device_class = "temperature"
             prefix = "Temperatur: "
             unit_of_measurement = "°C"
+
+            if 'temperature' in self._device['param']:
+                self._init_value = self._device['param']['temperature']
         elif self._service_name  == "scene_ctrl":
             prefix = "Scene: "
             self._value_template = "{{ value_json.val }}"
@@ -125,3 +143,12 @@ class Sensor(Base):
         }
 
         return device
+
+    def get_init_state(self):
+        '''Return the initial state of the sensor'''
+        payload = {"val": self._init_value}
+        data = [
+            {"topic": self._state_topic, "payload": json.dumps(payload)},
+        ]
+
+        return data
