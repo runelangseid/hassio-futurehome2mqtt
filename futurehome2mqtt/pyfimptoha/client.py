@@ -37,13 +37,6 @@ class Client:
             self._mqtt = mqtt
             mqtt.on_message = self.on_message
 
-        # Add Modus sensor (home, sleep, away and vacation)
-        # todo Find a way to auto discover the value. Sensor value is currently
-        # empty until set by the user
-        mode = Mode()
-        message = mode.get_component()
-        self.publish_messages([message])
-
         self.start()
 
         if self._hassio_token:
@@ -58,6 +51,13 @@ class Client:
         print(s)
 
     def start(self):
+        # Add Modus sensor (home, sleep, away and vacation)
+        # todo Find a way to auto discover the value. Sensor value is currently
+        # empty until changed by the system/user
+        mode = Mode()
+        message = mode.get_component()
+        self.publish_messages([message])
+
         # fimp discover
         self.send_fimp_discovery()
         time.sleep(2)
