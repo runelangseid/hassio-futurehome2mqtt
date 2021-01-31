@@ -54,6 +54,8 @@ class Client:
         # Add Modus sensor (home, sleep, away and vacation)
         # todo Find a way to auto discover the value. Sensor value is currently
         # empty until changed by the system/user
+        self.check_restarts()
+
         mode = Mode()
         message = mode.get_component()
         self.publish_messages([message])
@@ -68,19 +70,17 @@ class Client:
         self.listen_fimp()
 
     def check_restarts(self):
-        # print("Check for HA restart...")
-
         endpoint_prefix = ''
         if self._ha_host == 'hassio':
             endpoint_prefix = 'homeassistant/'
 
-        url = 'http://%s/%sapi/states/sensor.ha_uptime_minutes' % (self._ha_host, endpoint_prefix)
+        sensor_uptime = 'ha_uptime_minutes'
+        url = 'http://%s/%sapi/states/sensor.%s' % (self._ha_host, endpoint_prefix, sensor_uptime)
         headers={
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + self._hassio_token,
         }
 
-        #print('check_restarts: Uptime start', self._uptime)
         uptime = None
         try:
             r = requests.get(
@@ -88,11 +88,14 @@ class Client:
                 headers=headers
             )
 
-            # todo Handle 404 message
             if r.status_code == 200:
                 json = r.json()
                 uptime = int(float(json['state']))
                 print("check_restarts: Current uptime: " + str(uptime))
+            elif r.status_code == 401:
+                print("check_restarts: Home Assistant Rest API returned 401: Not authorize. Was a long-lived access token set up as mentioned in the README?")
+            elif r.status_code == 404:
+                print("check_restarts: Home Assistant Rest API returned 404: Not found. Sensor `%s` was not found. Was sensor `HA uptime moment` added as mentioned in the README?" % (sensor_uptime))
 
         except requests.exceptions.RequestException as e:
             print("check_restarts: Could not contact HA for uptime details")
@@ -104,7 +107,7 @@ class Client:
 
         # if not self._uptime or self._uptime > uptime:
         if uptime == None:
-            print("check_restarts: Connection problem: Could not get uptime from HA. Waiting 60 sec before retrying")
+            print("check_restarts: Could not get uptime from HA. Trying again in 60 seconds")
             threading.Timer(60, self.check_restarts).start()
             return
 
