@@ -11,16 +11,16 @@ def on_connect(client, userdata, flags, rc):
 
     if rc == 0:
         connected = True
-        print("Connected successfull")
+        print("mqtt: Connected successfull")
     else:
         connected = False
-        print("Could not connect. Result code: " + str(rc))
+        print("mqtt: Could not connect. Result code: " + str(rc))
 
 def on_disconnect(client, userdata, rc):
     global connected
 
     connected = False
-    print("Disconnected... Result code: " + str(rc))
+    print("mqtt: Disconnected... Result code: " + str(rc))
 
 def do_connect():
     client = mqtt.Client(client_id)
@@ -38,7 +38,7 @@ def serve(client, selected_devices):
     print("Sleeping forever...")
     while True:
         if not connected:
-            print("No longer connected... Exiting")
+            print("mqtt: No longer connected... Exiting")
             break
 
         time.sleep(10)
