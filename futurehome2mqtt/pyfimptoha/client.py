@@ -140,11 +140,13 @@ class Client:
 
     def publish_messages(self, messages):
         """Publish list of messages over MQTT"""
+        
         if self._verbose:
             print('Publish messages', messages)
 
         if self._mqtt and messages:
             for data in messages:
+                
                 self._mqtt.publish(data["topic"], data["payload"])
 
     def send_fimp_discovery(self):
@@ -217,9 +219,7 @@ class Client:
         self._devices = devices
         #print(devices)
         for device in self._devices:
-            #print("####################################Start Print Device###########################################")
-            #print(device)
-            #print("####################################End Print Device###########################################")
+            
             # Skip device without room
             if device["room"] == None:
                 continue
@@ -310,8 +310,7 @@ class Client:
                 for light in self.lights:
                     if light.unique_id == unique_id:
                         messages = light.handle_ha(topic_type, payload)
-                        print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
-                        print(messages)
+                        
                         if self._verbose:
                             print("process ha: messages", messages)
                         self.publish_messages(messages)

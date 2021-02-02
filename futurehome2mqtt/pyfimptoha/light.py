@@ -93,7 +93,6 @@ class Light:
         }
 
         return device
-        print(device)
 
     def get_state(self):
         """ Return the current state of the light
@@ -153,16 +152,22 @@ class Light:
                 "val": val,
                 "val_t": "bool",
             }
-
-            data = [
-                {"topic": self._state_topic, "payload": payload},
-                {
-                    "topic": self._brightness_state_topic,
-                    "payload": self._brightness_value,
-                },
-                {"topic": topic_fimp, "payload": json.dumps(payload_fimp)},
-            ]
-            return data
+            if self._service_name == "out_lvl_switch":
+                data = [
+                    {"topic": self._state_topic, "payload": payload},
+                    {
+                        "topic": self._brightness_state_topic,
+                        "payload": self._brightness_value,
+                    },
+                    {"topic": topic_fimp, "payload": json.dumps(payload_fimp)},
+                ]
+                return data
+            if self._service_name == "out_bin_switch":
+                data = [
+                    {"topic": self._state_topic, "payload": payload},
+                    {"topic": topic_fimp, "payload": json.dumps(payload_fimp)},
+                ]
+                return data
 
         elif topic_type == "brightness_command":
             # print("Light: Received brightness_command")
@@ -180,11 +185,12 @@ class Light:
             data = [
                 {"topic": topic_fimp, "payload": json.dumps(payload_fimp)},
             ]
+
             return data
 
     def handle_fimp(self, payload):
-        print("############################################")
-        print('light.handle_fimp()', payload)
+        #print("########### Handle FIMP ###############")
+        #print('light.handle_fimp()', payload)
         topic = ''
         payload_out = None
 
@@ -194,7 +200,7 @@ class Light:
             # if payload['val'] == True:
             #     payload_out = True
             self._state_value = payload_out
-
+            
         elif payload['val_t'] == "int":
             payload_out = payload['val']
 
