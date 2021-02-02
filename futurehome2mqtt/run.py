@@ -11,16 +11,16 @@ def on_connect(client, userdata, flags, rc):
 
     if rc == 0:
         connected = True
-        print("mqtt: Connected successfull")
+        print("MQTT client: Connected successfull")
     else:
         connected = False
-        print("mqtt: Could not connect. Result code: " + str(rc))
+        print("MQTT client: Could not connect. Result code: " + str(rc))
 
 def on_disconnect(client, userdata, rc):
     global connected
 
     connected = False
-    print("mqtt: Disconnected... Result code: " + str(rc))
+    print("MQTT client: Disconnected... Result code: " + str(rc))
 
 def do_connect():
     client = mqtt.Client(client_id)
@@ -38,7 +38,7 @@ def serve(client, selected_devices):
     print("Sleeping forever...")
     while True:
         if not connected:
-            print("mqtt: No longer connected... Exiting")
+            print("MQTT client: No longer connected... Exiting")
             break
 
         time.sleep(10)
@@ -72,6 +72,9 @@ if __name__ == "__main__":
     ha_host = os.environ.get('HA_HOST')
     client_id = os.environ.get('CLIENT_ID')
     debug = os.environ.get('DEBUG')
+    selected_devices = os.environ.get('SELECTED_DEVICES').split(',')
+    for i in range(0, len(selected_devices)):
+        selected_devices[i] = int(selected_devices[i])
 
     if debug == 'True':
         debug = True
@@ -85,6 +88,7 @@ if __name__ == "__main__":
     print('Home Assistant long-lived access token: ', token[:5] + "...")
     print('Home Assistant host: ', ha_host)
     print('Debug : ', debug)
+    print('Selected devices', selected_devices)
 
     if len(sys.argv) > 1 and sys.argv[1] == "help":
         print(
@@ -98,5 +102,5 @@ if __name__ == "__main__":
         time.sleep(2)
 
         if connected:
-            serve(client, None)
+            serve(client, selected_devices)
             # serve(client, [7, 37])

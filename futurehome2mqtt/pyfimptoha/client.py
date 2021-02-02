@@ -91,14 +91,14 @@ class Client:
             if r.status_code == 200:
                 json = r.json()
                 uptime = int(float(json['state']))
-                print("check_restarts: Current uptime: " + str(uptime))
+                print("Check for HA restart: Current uptime %s minutes" % str(uptime))
             elif r.status_code == 401:
-                print("check_restarts: Home Assistant Rest API returned 401: Not authorize. Was a long-lived access token set up as mentioned in the README?")
+                print("Check for HA restart: Home Assistant Rest API returned 401: Not authorize. Was a long-lived access token set up as mentioned in the README?")
             elif r.status_code == 404:
-                print("check_restarts: Home Assistant Rest API returned 404: Not found. Sensor `%s` was not found. Was sensor `HA uptime moment` added as mentioned in the README?" % (sensor_uptime))
+                print("Check for HA restart: Home Assistant Rest API returned 404: Not found. Sensor `%s` was not found. Was sensor `HA uptime moment` added as mentioned in the README?" % (sensor_uptime))
 
         except requests.exceptions.RequestException as e:
-            print("check_restarts: Could not contact HA for uptime details")
+            print("Check for HA restart: Could not contact HA for uptime details")
             print("Error code: " + r.status_code)
             print(e)
         except:
@@ -166,6 +166,7 @@ class Client:
                 'topic': topic,
                 'payload': json.dumps(data)
             }
+            self.log('Telling FIMP to expose all devices')
             self.publish_messages([message])
 
     def publish_components(self):
@@ -218,22 +219,27 @@ class Client:
     def create_components(self, devices):
         """ Creates HA components out of FIMP devices"""
         self._devices = devices
+        self.log('Received list of devices from FIMP')
+        self.log('- Devices without rooms are ignored')
 
         for device in self._devices:
-            # Skip device without room
-            if device["room"] == None:
-                continue
-
             address = device["fimp"]["address"]
             name = device["client"]["name"]
             functionality = device["functionality"]
             room = device["room"]
 
-            #  When debugging: Ignore everything except self._selected_devices if set
-            if self._selected_devices and int(address) not in self._selected_devices:
+            # Skip device without room
+            if device["room"] == None:
+                self.log('Skipping: %s %s' % (address, name))
                 continue
 
-            self.log("Creating: " + address + ' ' + name)
+            #  When debugging: Ignore everything except self._selected_devices if set
+            if self._selected_devices and int(address) not in self._selected_devices:
+                self.log('Skipping: %s %s' % (address, name))
+                continue
+
+            self.log("Creating: %s %s" % (address, name))
+            self.log("- Functionality: %s" % (functionality))
 
             for service_name in device["services"]:
                 component = None

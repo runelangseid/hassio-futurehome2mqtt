@@ -1,6 +1,6 @@
 {
     "name": "Future FIMP integration",
-    "version": "0.1.20",
+    "version": "0.1.21",
     "slug": "futurehome_fimp",
     "description": "Futurehome FIMP integration",
     "url": "https://github.com/runelangseid/hassio-futurehome2mqtt",
@@ -13,13 +13,15 @@
         "fimpusername": "mqttuser",
         "fimppassword": "mqttpassword",
         "fimpport": 1884,
-        "client_id": "fimptoha"
+        "client_id": "fimptoha",
+        "selected_devices": ""
       },
       "schema": {
         "fimpserver": "str",
         "fimpusername": "str",
         "fimppassword": "str",
         "fimpport": "int",
-        "client_id": "str"
+        "client_id": "str",
+        "selected_devices": "str"
       }
   }
