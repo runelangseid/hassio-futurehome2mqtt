@@ -16,6 +16,7 @@ class Sensor(Base):
         power               Supported
         pressure            Unsupported
         timestamp           Unsupported
+        presence            Unsupported
     '''
 
     _device_class = None
@@ -49,6 +50,8 @@ class Sensor(Base):
             'scene_ctrl',
             'sensor_lumin',
             'sensor_power',
+            'sensor_temp',
+            'sensor_precence',
             'sensor_temp',
         ]
         return sensors

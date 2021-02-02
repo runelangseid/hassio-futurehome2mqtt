@@ -36,19 +36,23 @@ class Light:
 
         # topic: homeassistant/light/7_sensor_power/config
         self._config_topic = "homeassistant/light/%s/config" % (self._unique_id)
+        
         self._state_topic = self._config_topic.replace("config", "state")
         self._command_topic = self._config_topic.replace("config", "set")
-        self._brightness_state_topic = self._config_topic.replace(
-            "config", "brightness_state"
-        )
-        self._brightness_command_topic = self._config_topic.replace(
-            "config", "brightness_command"
-        )
+        
+        if self._service_name == "out_lvl_switch":
+            self._brightness_state_topic = self._config_topic.replace(
+                "config", "brightness_state"
+            )
+            self._brightness_command_topic = self._config_topic.replace(
+                "config", "brightness_command"
+            )
 
         # Set current values
-        self._brightness_value = self._device["param"]["dimValue"]
+        
+            self._brightness_value = self._device["param"]["dimValue"]
         if self._device["param"]["power"] == "on":
-            self._state_value = True
+                self._state_value = True
 
         if self._address != "7":
             return
@@ -60,52 +64,74 @@ class Light:
         return self._unique_id
 
     def get_component(self):
-        payload = {
-            "name": self._name,
-            "state_topic": self._state_topic,
-            "command_topic": self._command_topic,
-            "brightness_scale": 100,
-            "brightness_state_topic": self._brightness_state_topic,
-            "brightness_command_topic": self._brightness_command_topic,
-            # "optimistic": True,
-            "payload_on": True,
-            "payload_off": False,
-            "unique_id": self._unique_id,
-        }
-
+        if self._service_name == "out_bin_switch":
+            payload = {
+                "name": self._name,
+                "state_topic": self._state_topic,
+                "command_topic": self._command_topic,
+                # "optimistic": True,
+                "payload_on": True,
+                "payload_off": False,
+                "unique_id": self._unique_id,
+            }
+        elif self._service_name == "out_lvl_switch":
+            payload = {
+                "name": self._name,
+                "state_topic": self._state_topic,
+                "command_topic": self._command_topic,
+                "brightness_scale": 100,
+                "brightness_state_topic": self._brightness_state_topic,
+                "brightness_command_topic": self._brightness_command_topic,
+                # "optimistic": True,
+                "payload_on": True,
+                "payload_off": False,
+                "unique_id": self._unique_id,
+            }
         device = {
             "topic": self._config_topic,
             "payload": json.dumps(payload),
         }
 
         return device
+        print(device)
 
     def get_state(self):
         """ Return the current state of the light
         On/off and dim level
         """
-        data = [
-            {"topic": self._state_topic, "payload": self._state_value,},
-            {"topic": self._brightness_state_topic, "payload": self._brightness_value},
-        ]
-
+        if self._service_name == "out_bin_switch":
+            data = [
+                {"topic": self._state_topic, "payload": self._state_value,},
+            ]
+            
+        elif self._service_name == "out_lvl_switch":
+            data = [
+                {"topic": self._state_topic, "payload": self._state_value,},
+                {"topic": self._brightness_state_topic, "payload": self._brightness_value},
+            ]
         return data
 
     def handle_ha(self, topic_type, payload):
         """ Handle message from HA and send cmd to FIMP
         We also send a state message back to HA
         """
-        # print(
-        #     "Light received: %s.  State: %s. Payload: %s"
-        #     % (self.unique_id, topic_type, payload)
-        # )
+        print(
+            "Light received: %s.  State: %s. Payload: %s"
+            % (self.unique_id, topic_type, payload)
+        )
         # print("Brightness value is", self._brightness_value)
 
-        topic_fimp = "pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:%s/ad:%s_1" % (
-            self._service_name,
-            self._address,
-        )
-
+        if self._service_name == "out_bin_switch":
+            topic_fimp = "pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:%s/ad:%s_0" % (
+                self._service_name,
+                self._address,
+            )
+        if self._service_name == "out_lvl_switch":
+            topic_fimp = "pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:%s/ad:%s_1" % (
+                self._service_name,
+                self._address,
+            )
+        
         if topic_type == "set":
             val = False
 
@@ -157,7 +183,8 @@ class Light:
             return data
 
     def handle_fimp(self, payload):
-        # print('light.handle_fimp()', payload)
+        print("############################################")
+        print('light.handle_fimp()', payload)
         topic = ''
         payload_out = None
 
@@ -180,5 +207,5 @@ class Light:
                 "payload": payload_out
             }
         ]
-
+        
         return data

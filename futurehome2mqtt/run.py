@@ -10,7 +10,7 @@ def on_connect(client, userdata, flags, rc):
     global connected
 
     if rc == 0:
-        connected = True
+        connected =True
         print("Connected successfull")
     else:
         connected = False
