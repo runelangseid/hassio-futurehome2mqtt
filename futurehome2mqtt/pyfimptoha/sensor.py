@@ -9,14 +9,14 @@ class Sensor(Base):
     https://www.home-assistant.io/integrations/sensor/#device-class
         None                Supported
         battery             Supported
-        humidity            Unsupported
+        humidity            Supported
         illuminance         Supported
         signal_strength     Unsupported
         temperature         Supported
         power               Supported
         pressure            Unsupported
         timestamp           Unsupported
-        presence            Unsupported
+        presence            Supported
     '''
 
     _device_class = None
@@ -51,8 +51,9 @@ class Sensor(Base):
             'sensor_lumin',
             'sensor_power',
             'sensor_temp',
-            'sensor_precence',
+            'sensor_presence',
             'sensor_temp',
+            'sensor_humid',
         ]
         return sensors
 
@@ -110,6 +111,13 @@ class Sensor(Base):
 
             if 'temperature' in self._device['param']:
                 self._init_value = self._device['param']['temperature']
+        elif self._service_name  == "sensor_humid":
+            device_class = "humidity"
+            prefix = "Humidity: "
+            unit_of_measurement = "%"
+
+            if 'humidity' in self._device['param']:
+                self._init_value = self._device['param']['humidity']
         elif self._service_name  == "scene_ctrl":
             prefix = "Scene: "
             self._value_template = "{{ value_json.val }}"
