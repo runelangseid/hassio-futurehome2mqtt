@@ -72,9 +72,13 @@ if __name__ == "__main__":
     ha_host = os.environ.get('HA_HOST')
     client_id = os.environ.get('CLIENT_ID')
     debug = os.environ.get('DEBUG')
-    selected_devices = os.environ.get('SELECTED_DEVICES').split(',')
-    for i in range(0, len(selected_devices)):
-        selected_devices[i] = int(selected_devices[i])
+    selected_devices = os.environ.get('SELECTED_DEVICES')
+
+    if selected_devices:
+        selected_devices = selected_devices.split(',')
+        # convert values to int
+        for i in range(0, len(selected_devices)):
+            selected_devices[i] = int(selected_devices[i])
 
     if debug == 'True':
         debug = True
