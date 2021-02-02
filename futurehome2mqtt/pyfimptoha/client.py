@@ -74,7 +74,7 @@ class Client:
         if self._ha_host == 'hassio':
             endpoint_prefix = 'homeassistant/'
 
-        url = 'http://%s/%sapi/states/sensor.time_online' % (self._ha_host, endpoint_prefix)
+        url = 'http://%s/%sapi/states/sensor.ha_uptime_minutes' % (self._ha_host, endpoint_prefix)
         headers={
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + self._hassio_token,
@@ -88,13 +88,15 @@ class Client:
                 headers=headers
             )
 
+            # todo Handle 404 message
             if r.status_code == 200:
                 json = r.json()
                 uptime = int(float(json['state']))
-                # print("check_restarts: Current uptime: " + str(uptime))
+                print("check_restarts: Current uptime: " + str(uptime))
 
         except requests.exceptions.RequestException as e:
             print("check_restarts: Could not contact HA for uptime details")
+            print("Error code: " + r.status_code)
             print(e)
         except:
             print('Something went wrong')
@@ -102,8 +104,8 @@ class Client:
 
         # if not self._uptime or self._uptime > uptime:
         if uptime == None:
-            print("check_restarts: Connection problem: Could not get uptime from HA. Waiting 180 sec before retrying")
-            threading.Timer(180, self.check_restarts).start()
+            print("check_restarts: Connection problem: Could not get uptime from HA. Waiting 60 sec before retrying")
+            threading.Timer(60, self.check_restarts).start()
             return
 
         if self._uptime == 0:

@@ -60,8 +60,13 @@ mqtt:
 # Uptime sensor to detect if Home Assistant is restarted
 sensor:
   - platform: uptime
-    name: Time Online
-    unit_of_measurement: minutes
+    name: "HA uptime moment"
+  - platform: template
+    sensors:
+      ha_uptime_minutes:
+        friendly_name: "HA uptime minutes"
+        value_template: >
+          {{ ((as_timestamp(now()) - as_timestamp(states('sensor.ha_uptime_moment'))) / 60) | round(0) }}
 ```
 
 ### 2. Install add-on
