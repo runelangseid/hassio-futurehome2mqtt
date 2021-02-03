@@ -27,3 +27,8 @@ class Base:
     def unique_id(self):
         '''Return the unique id of the light.'''
         return self._unique_id
+
+    @property
+    def handle_fimp(self, payload):
+        '''Not implemented.'''
+        print('handle_fimp was called. Not implemented')
