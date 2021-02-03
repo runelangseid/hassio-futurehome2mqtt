@@ -177,10 +177,6 @@ class Client:
         # - Lights
         # todo Add support for Wall plugs with functionality 'Lighting'
         for unique_id, component in self.components.items():
-            #  When debugging: Ignore everything except self._selected_devices if set
-            if self._selected_devices and int(component._address) not in self._selected_devices:
-                continue
-
             message = component.get_component()
             self.publish_messages([message])
 

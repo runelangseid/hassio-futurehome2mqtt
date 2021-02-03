@@ -152,3 +152,6 @@ class Sensor(Base):
         ]
 
         return data
+
+    def handle_fimp(self, payload):
+        '''Do nothing'''
