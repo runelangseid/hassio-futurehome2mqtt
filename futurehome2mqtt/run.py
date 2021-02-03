@@ -78,7 +78,7 @@ if __name__ == "__main__":
         selected_devices = selected_devices.split(',')
         # convert values to int
         for i in range(0, len(selected_devices)):
-            selected_devices[i] = int(selected_devices[i])
+            selected_devices[i] = selected_devices[i]
 
     if debug.lower() == 'true':
         debug = True
