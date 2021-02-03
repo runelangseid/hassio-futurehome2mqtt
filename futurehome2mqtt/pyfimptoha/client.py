@@ -234,6 +234,9 @@ class Client:
                 continue
 
             #  When debugging: Ignore everything except self._selected_devices if set
+            self.log('[debug] Address and name: %s %s' % (address, name))
+            self.log(type(address))
+            self.log(address)
             if self._selected_devices and int(address) not in self._selected_devices:
                 self.log('Skipping: %s %s' % (address, name))
                 continue

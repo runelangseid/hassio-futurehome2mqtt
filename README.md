@@ -103,13 +103,11 @@ pip install -r requirements.txt
 
 2. Setup configuration
     ```
-    cp env-div .env
+    cp env-dist .env
     ```
 3. Edit `.env` and fill in hostnames and credentials
 
-4. Run `source .env`
-
-5. Run `python run.py serve`
+4. Run `source .env && python run.py serve`
 
 
 # Alternative FIMP integrations
