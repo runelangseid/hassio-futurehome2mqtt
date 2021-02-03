@@ -145,11 +145,13 @@ class Client:
 
     def publish_messages(self, messages):
         """Publish list of messages over MQTT"""
+        
         if self._verbose:
             print('Publish messages', messages)
 
         if self._mqtt and messages:
             for data in messages:
+                
                 self._mqtt.publish(data["topic"], data["payload"])
 
     def send_fimp_discovery(self):
@@ -193,6 +195,7 @@ class Client:
             for data in init_state:
                 self.publish_messages([data])
                 time.sleep(0.1)
+                #print(light + init_state)
 
         print("- switches")
         time.sleep(0.5)
@@ -207,6 +210,7 @@ class Client:
             init_state = sensor.get_init_state()
             self.publish_messages(init_state)
             time.sleep(0.1)
+            print(init_state)
 
     def load_json_device(self, filename):
         data = "{}"
@@ -219,14 +223,17 @@ class Client:
     def create_components(self, devices):
         """ Creates HA components out of FIMP devices"""
         self._devices = devices
+
         self.log('Received list of devices from FIMP. FIMP reported %s devices' % (len(devices)))
         self.log('Devices without rooms are ignored')
 
         for device in self._devices:
+
             address = device["fimp"]["address"]
             name = device["client"]["name"]
-            functionality = device["functionality"]
+            functionality = device["type"]["type"]
             room = device["room"]
+
 
             # Skip device without room
             if device["room"] == None:
@@ -241,13 +248,14 @@ class Client:
             self.log("Creating: %s %s" % (address, name))
             self.log("- Functionality: %s" % (functionality))
 
+
             for service_name in device["services"]:
                 component = None
                 component_address = address + "-" + service_name
                 service = device["services"][service_name]
 
                 if (
-                    functionality == "lighting" and (
+                    functionality == "light" and (
                         service_name.startswith("out_bin_switch") or
                         service_name.startswith("out_lvl_switch")
                     )
@@ -257,6 +265,8 @@ class Client:
                     service_name.startswith("out_bin_switch")
                 ):
                     component = "switch"
+                elif functionality == "sensor":
+                    component = "sensor"
                 elif service_name in Sensor.supported_services():
                     component = "sensor"
 
@@ -267,6 +277,9 @@ class Client:
                 self.log("- Creating component %s - %s" % (component, service_name), True)
 
                 # todo Add support for binary_sensor
+                #if component == "sensor" and subtype == "presence":
+                #    continue
+
                 if component == "sensor":
                     sensor = Sensor(service_name, service, device)
                     self.sensors.append(sensor)
@@ -279,6 +292,7 @@ class Client:
                     light = Light(service_name, service, device)
                     self.lights.append(light)
                     self.components[light.unique_id] = light
+            
 
     def process_ha(self, topic, payload):
         """
@@ -295,10 +309,11 @@ class Client:
 
         topic = topic.split("/")
         result = None
+        #print(topic)
 
         # Topic like: homeassistant/light/7-out_lvl_switch/command
         if len(topic) > 3:
-            # print("process_ha:topic", topic)
+            print("process_ha:topic", topic)
             component = topic[1]
             unique_id = topic[2]
             topic_type = topic[3]
@@ -307,7 +322,7 @@ class Client:
                 for light in self.lights:
                     if light.unique_id == unique_id:
                         messages = light.handle_ha(topic_type, payload)
-
+                        
                         if self._verbose:
                             print("process ha: messages", messages)
                         self.publish_messages(messages)

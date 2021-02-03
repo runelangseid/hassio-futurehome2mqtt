@@ -10,8 +10,10 @@ def on_connect(client, userdata, flags, rc):
     global connected
 
     if rc == 0:
+
         connected = True
         print("MQTT client: Connected successfull")
+
     else:
         connected = False
         print("MQTT client: Could not connect. Result code: " + str(rc))
