@@ -219,8 +219,8 @@ class Client:
     def create_components(self, devices):
         """ Creates HA components out of FIMP devices"""
         self._devices = devices
-        self.log('Received list of devices from FIMP')
-        self.log('- Devices without rooms are ignored')
+        self.log('Received list of devices from FIMP. FIMP reported %s devices' % (len(devices)))
+        self.log('Devices without rooms are ignored')
 
         for device in self._devices:
             address = device["fimp"]["address"]
@@ -230,7 +230,7 @@ class Client:
 
             # Skip device without room
             if device["room"] == None:
-                self.log('Skipping: %s %s' % (address, name))
+                # self.log('Skipping: %s %s' % (address, name))
                 continue
 
             #  When debugging: Ignore everything except self._selected_devices if set
