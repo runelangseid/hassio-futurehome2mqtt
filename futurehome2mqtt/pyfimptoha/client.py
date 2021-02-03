@@ -166,7 +166,7 @@ class Client:
                 'topic': topic,
                 'payload': json.dumps(data)
             }
-            self.log('Telling FIMP to expose all devices')
+            self.log('Asking FIMP to expose all devices...')
             self.publish_messages([message])
 
     def publish_components(self):
