@@ -74,7 +74,6 @@ if __name__ == "__main__":
     debug = os.environ.get('DEBUG')
     selected_devices = os.environ.get('SELECTED_DEVICES')
 
-    print('Selected devices (raw):', selected_devices)
     if selected_devices:
         selected_devices = selected_devices.split(',')
         # convert values to int
