@@ -1,9 +1,8 @@
-export FIMPSERVER=cube # hostname or ip of futurehome hub
-export FIMPUSERNAME=
-export FIMPPASSWORD=
-export FIMPPORT=1884
-export CLIENT_ID=fimp2mqtt
-export DEBUG=False
-export SELECTED_DEVICES=
-export HA_HOST=homeassistant_ip:8123
-export HASSIO_TOKEN=xxx
+# hostname or ip of futurehome hub
+FIMPSERVER=cube
+FIMPUSERNAME=
+FIMPPASSWORD=
+FIMPPORT=1884
+CLIENT_ID=fimp2mqtt
+DEBUG=False
+SELECTED_DEVICES=
