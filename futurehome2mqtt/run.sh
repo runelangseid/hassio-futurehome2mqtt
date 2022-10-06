@@ -1,15 +1,14 @@
-#!/usr/bin/env bashio
-set +u
+#!/usr/bin/with-contenv bashio
+set -e
 
-CONFIG_PATH=/data/options.json
-export FIMPSERVER=$(jq --raw-output ".fimpserver" $CONFIG_PATH)
-export FIMPUSERNAME=$(jq --raw-output ".fimpusername" $CONFIG_PATH)
-export FIMPPASSWORD=$(jq --raw-output ".fimppassword" $CONFIG_PATH)
-export FIMPPORT=$(jq --raw-output ".fimpport" $CONFIG_PATH)
-export CLIENT_ID=$(jq --raw-output ".client_id" $CONFIG_PATH)
-export DEBUG=$(jq --raw-output ".debug" $CONFIG_PATH)
-export SELECTED_DEVICES=$(jq --raw-output ".selected_devices" $CONFIG_PATH)
+export FIMPSERVER=$(bashio::config 'fimpserver')
+export FIMPUSERNAME=$(bashio::config 'fimpusername')
+export FIMPPASSWORD=$(bashio::config 'fimppassword')
+export FIMPPORT=$(bashio::config 'fimpport')
+export CLIENT_ID=$(bashio::config 'client_id')
+export DEBUG=$(bashio::config 'debug')
+export SELECTED_DEVICES=$(bashio::config 'selected_devices')
 export PYTHONUNBUFFERED=1
 
-echo Starting Futurehome FIMP to MQTT
+echo Starting Futurehome FIMP to Home Assistant
 python3 run.py serve
