@@ -77,7 +77,6 @@ def create_components(
 
             # Lights
             elif functionality == "lighting":
-                # todo Add support for bin switch
                 if service_name == "out_lvl_switch":
                     identifier = f"fh_{address}_{service_name}"
                     command_topic = f"pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:out_lvl_switch/ad:{address}_1"
