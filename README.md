@@ -17,6 +17,7 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
 
 * Lights (lights in HA)
   * Dimmers - On/Off and brightness. Tested with Fibaro dimmer 2
+  * Switches - On/Off. Tested with Fibaro wall plug
 * Energy
   * Accumulated energy usage (`meter_elec´) for devices supporting this
 

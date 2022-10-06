@@ -14,7 +14,7 @@
         "fimpusername": "mqttuser",
         "fimppassword": "mqttpassword",
         "fimpport": 1884,
-        "client_id": "fimp2ha",
+        "client_id": "fimp2mqtt",
         "debug": false,
         "selected_devices": ""
       },
@@ -28,3 +28,4 @@
         "selected_devices": "str"
       }
   }
+z|
