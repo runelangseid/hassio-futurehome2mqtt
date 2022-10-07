@@ -15,6 +15,8 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
 
 ## Supported Futurehome devices
 
+* Appliances (switches in HA)
+  * Wall plugs like Fibaro Wall plug is supported
 * Lights (lights in HA)
   * Dimmers - On/Off and brightness. Tested with Fibaro dimmer 2
   * Switches - On/Off. Tested with Fibaro wall plug
@@ -26,9 +28,6 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
 
 These things are probably no longer implemented
 
-* Appliances (switches in HA)
-  * Wall plugs like Fibaro Wall plug is supported
-  * Wall plugs like Fibaro Wall plug is *not* supported (yet)
 * Sensors (sensors in HA)
   * Battery
   * Illuminance

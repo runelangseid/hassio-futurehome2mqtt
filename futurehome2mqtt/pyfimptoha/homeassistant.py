@@ -28,22 +28,20 @@ def create_components(
 
         # Skip device without room
         if device["room"] is None:
-            # self.log('Skipping: %s %s' % (address, name))
             continue
 
-        #  When debugging: Ignore everything except self._selected_devices if set
+        # When debugging: Ignore everything except selected_devices if set
         if selected_devices and address not in selected_devices:
-            print('Skipping: %s %s' % (address, name))
+            print(f"Skipping: {address} {name}")
             continue
 
-        print("Creating: %s %s" % (address, name))
-        print("- Functionality: %s" % (functionality))
+        print(f"Creating: {address} {name}")
+        print(f"- Functionality: {functionality}")
 
-        # if address != '21':
-        #   continue
-
-        for service_name in device["services"]:
-            # Service meter_elec - "Forbruk"
+        for service_name, service in device["services"].items():
+            # Adding sensors
+            # todo add more sensors: alarm_power?, sensor_power
+            # - Service meter_elec - "Forbruk"
             if service_name == "meter_elec":
                 identifier = f"fh_{address}_meter_elec"
                 state_topic = f"pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:meter_elec/ad:{address}_0"
@@ -119,7 +117,8 @@ def create_components(
                     payload = json.dumps(component)
                     mqtt.publish(f"homeassistant/light/{identifier}/config", payload)
 
-                    # Queue statuses
+                    # Push statuses
+                    # todo binary switches are not set correctly
                     if device.get("param") and device['param'].get('power'):
                         power = device['param']['power']
                         if power == "off":
@@ -142,7 +141,44 @@ def create_components(
                         payload = json.dumps(data)
                         statuses.append((state_topic, payload))
 
-            # todo Add support for binary_sensor?
+            # Appliance
+            elif functionality == "appliance":
+                # Binary switch
+                if service_name == "out_bin_switch":
+                    identifier = f"fh_{address}_{service_name}"
+                    command_topic = f"pt:j1/mt:cmd{service['addr']}"
+                    state_topic   = f"pt:j1/mt:evt{service['addr']}"
+                    component = {
+                        "name": f"{device['client']['name']}",
+                        "object_id": identifier,
+                        "unique_id": identifier,
+                        "device_class": "outlet",
+                        "schema": "template",
+                        "command_topic": command_topic,
+                        "state_topic": state_topic,
+                        "payload_on":  '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":true,"val_t":"bool"}',
+                        "payload_off": '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":false,"val_t":"bool"}',
+                        "value_template": '{{ value_json.val }}',
+                        "state_on": True,
+                        "state_off": False,
+                    }
+                    payload = json.dumps(component)
+                    mqtt.publish(f"homeassistant/switch/{identifier}/config", payload)
+
+                    # Push statuses
+                    if device.get("param") and device['param'].get('power'):
+                        power = device['param']['power']
+                        data = {
+                            "props": {},
+                            "serv": "out_bin_switch",
+                            "type": "cmd.binary.report",
+                            "val_t": "bool",
+                            "val": True if power == 'on' else False
+                        }
+                        payload = json.dumps(data)
+                        statuses.append((state_topic, payload))
+
+                pass
 
     mqtt.loop()
     time.sleep(2)
