@@ -20,8 +20,11 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
 * Lights (lights in HA)
   * Dimmers - On/Off and brightness. Tested with Fibaro dimmer 2
   * Switches - On/Off. Tested with Fibaro wall plug
-* Energy
-  * Accumulated energy usage (`meter_elec´) for devices supporting this
+* Sensors
+  * Battery
+  * Illuminance
+  * Temperature
+  * Accumulated energy usage (kWh) (`meter_elec´) for devices supporting this
 
 
 ### Untested in new version
@@ -41,8 +44,8 @@ These things are probably no longer implemented
 ### 1. Home Assistant configuration
 
 Home Assistant must use the MQTT broker provided by the Futurehome Smart hub.
+It's reqommended to configure MQTT via GUI.
 
-configuration.yaml
 ```
 # MQTT
 mqtt:

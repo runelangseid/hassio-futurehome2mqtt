@@ -1,6 +1,7 @@
 import json
 import time
 import paho.mqtt.client as client
+import pyfimptoha.sensor as sensor
 
 
 def create_components(
@@ -40,40 +41,40 @@ def create_components(
 
         for service_name, service in device["services"].items():
             # Adding sensors
-            # todo add more sensors: alarm_power?, sensor_power
-            # - Service meter_elec - "Forbruk"
-            if service_name == "meter_elec":
-                identifier = f"fh_{address}_meter_elec"
-                state_topic = f"pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:meter_elec/ad:{address}_0"
-                component = {
-                    "name": f"{device['client']['name']} (forbruk)",
-                    "object_id": identifier,
-                    "unique_id": identifier,
-                    "state_topic": state_topic,
-                    "device_class": "energy",
-                    "state_class": "total_increasing",
-                    "unit_of_measurement": "kWh",
-                    "value_template": "{{ value_json.val }}"
-                }
-                payload = json.dumps(component)
-                mqtt.publish(f"homeassistant/sensor/{identifier}/config", payload)
-
-                # Queue statuses
-                if device.get("param") and device['param'].get('energy'):
-                    value = device['param']['energy']
-                    data = {
-                        "props": {
-                            "unit": "kWh"
-                        },
-                        "serv": "meter_elec",
-                        "type": "evt.meter.report",
-                        "val": value,
-                    }
-
-                    payload = json.dumps(data)
-                    statuses.append((state_topic, payload))
+            # todo add more sensors: alarm_power?, sensor_power. see sensor.py.01
+            status = False
+            if service_name == "battery":
+                print(f"- Service: {service_name}")
+                status = sensor.battery(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
+            elif service_name == "meter_elec":
+                status = sensor.meter_elec(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
+            elif service_name == "sensor_lumin":
+                print(f"- Service: {service_name}")
+                status = sensor.sensor_lumin(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
+            elif service_name == "sensor_temp":
+                print(f"- Service: {service_name}")
+                status = sensor.sensor_temp(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
+            if status:
+                statuses.append(status)
 
             # Lights
+            # todo Move to separate file
             elif functionality == "lighting":
                 if service_name == "out_lvl_switch":
                     identifier = f"fh_{address}_{service_name}"

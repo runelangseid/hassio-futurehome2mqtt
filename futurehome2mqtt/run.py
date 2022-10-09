@@ -65,13 +65,11 @@ if __name__ == "__main__":
     port = int(os.environ.get('FIMPPORT'))
     client_id = os.environ.get('CLIENT_ID')
     debug = os.environ.get('DEBUG')
-    selected_devices = os.environ.get('SELECTED_DEVICES')
+    selected_devices = []
 
-    if selected_devices:
-        selected_devices = selected_devices.split(',')
-        # convert values to int
-        for i in range(0, len(selected_devices)):
-            selected_devices[i] = selected_devices[i]
+    _selected_devices = os.environ.get('SELECTED_DEVICES')
+    if _selected_devices:
+        selected_devices = _selected_devices.split(',')
 
     if debug.lower() == 'true':
         debug = True
