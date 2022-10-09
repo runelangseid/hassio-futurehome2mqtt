@@ -27,5 +27,4 @@
         "debug": "bool",
         "selected_devices": "str"
       }
-  }
-z|
+}

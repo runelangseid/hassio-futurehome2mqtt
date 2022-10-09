@@ -102,7 +102,7 @@ def sensor_temp(
     # todo add room
     room = device["room"]
 
-    identifier = f"fh_{address}_temperatur"
+    identifier = f"fh_{address}_temperature"
     state_topic = f"pt:j1/mt:evt{service['addr']}"
     unit_of_measurement = "°C"
     component = {
