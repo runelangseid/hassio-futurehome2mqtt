@@ -24,18 +24,13 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
   * Battery
   * Illuminance
   * Temperature
-  * Accumulated energy usage (kWh) (`meter_elec´) for devices supporting this
+  * Accumulated energy usage (kWh) (`meter_elec`) for devices supporting this
 
 
 ### Untested in new version
 
-These things are probably no longer implemented
+These things are probably no longer working
 
-* Sensors (sensors in HA)
-  * Battery
-  * Illuminance
-  * Power usage
-  * Temperature
 * Scene control. Exposed as sensor. Tested with Fibaro button, and Namron 4 channel (K8)
 * Modus: home, away, sleep and vacation (`sensor.modus`, read only)
 
@@ -44,7 +39,7 @@ These things are probably no longer implemented
 ### 1. Home Assistant configuration
 
 Home Assistant must use the MQTT broker provided by the Futurehome Smart hub.
-It's reqommended to configure MQTT via GUI.
+It's recommended to configure MQTT via GUI, and not via `.yaml`
 
 ```
 # MQTT
@@ -60,7 +55,7 @@ mqtt:
 
 ### 2. Install add-on
 
-1) Add this repo as a add-on repository
+1) Add this repo as an add-on repository
 2) Install the addon 'Futurehome FIMP to MQTT'
 3) Configure the addon with the same parameters as before
 4) Start it. Supported devices should appear in the Home Assistant UI
