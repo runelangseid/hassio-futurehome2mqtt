@@ -1,5 +1,6 @@
 import json
 
+# todo re-implement
 class Mode():
     '''Implementation of MQTT sensor
     https://www.home-assistant.io/integrations/sensor.mqtt
