@@ -1,19 +1,20 @@
 {
     "name": "Future FIMP integration",
-    "version": "0.1.29",
+    "version": "0.2.0",
     "slug": "futurehome_fimp",
     "description": "Futurehome FIMP integration",
     "url": "https://github.com/runelangseid/hassio-futurehome2mqtt",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "before",
     "boot": "auto",
+    "init": false,
     "homeassistant_api": true,
     "options": {
         "fimpserver": "cube.home",
         "fimpusername": "mqttuser",
         "fimppassword": "mqttpassword",
         "fimpport": 1884,
-        "client_id": "fimptoha",
+        "client_id": "fimp2mqtt",
         "debug": false,
         "selected_devices": ""
       },
@@ -26,4 +27,4 @@
         "debug": "bool",
         "selected_devices": "str"
       }
-  }
+}

@@ -1,157 +1,178 @@
+"""
+Creates sensors in Home Assistant based on FIMP services
+"""
 import json
-from pyfimptoha.base import Base
-
-class Sensor(Base):
-    '''Implementation of MQTT sensor
-    https://www.home-assistant.io/integrations/sensor.mqtt
-
-    Device class:
-    https://www.home-assistant.io/integrations/sensor/#device-class
-        None                Supported
-        battery             Supported
-        humidity            Unsupported
-        illuminance         Supported
-        signal_strength     Unsupported
-        temperature         Supported
-        power               Supported
-        pressure            Unsupported
-        timestamp           Unsupported
-    '''
-
-    _device_class = None
-    _expire_after = 0
-    _icon = None
-    _name_prefix = ""
-    _unit_of_measurement = None
-    _value_template = None
-
-    _init_value = None
-
-    def __init__(self, service_name, service, device):
-        '''
-        Example
-        service_name:   sensor_power
-        service (json): {'addr': '/rt:dev/rn:zw/ad:1/sv:sensor_power/ad:41_0' ...
-        device (json):  {'client': {'name': 'Ovn (gang)'}, 'fimp': {'adapter': 'zwave-ad', ...
-        '''
-        super().__init__(service_name, service, device, "sensor")
-        self._name = self.name_prefix + self._name
-
-        # todo Move _value_template to set_type(). round(0) it probably not a good idea
-        self._value_template = "{{ value_json.val | round(0) }}"
-
-        self.set_type()
-
-    @staticmethod
-    def supported_services():
-        sensors = [
-            'battery',
-            'scene_ctrl',
-            'sensor_lumin',
-            'sensor_power',
-            'sensor_temp',
-        ]
-        return sensors
-
-    @property
-    def icon(self):
-        '''Return the icon of the sensor.'''
-        return "mdi:" + self._icon
-
-    @property
-    def unit_of_measurement(self):
-        '''Return the unit_of_measurement of the sensor.'''
-        return self._unit_of_measurement
-
-    @property
-    def name_prefix(self):
-        '''Return the name prefix for this sensor.'''
-        return self._name_prefix
-
-    def set_type(self):
-        '''
-        Set various properties like name prefix and
-        device class based on "service_name"
-        '''
-
-        device_class = None
-        prefix = ""
-        unit_of_measurement = ""
-
-        if self._service_name == "battery":
-            device_class = "battery"
-            prefix = "Batteri: "
-            unit_of_measurement = "%"
-
-            if 'batteryPercentage' in self._device['param']:
-                self._init_value = self._device['param']['batteryPercentage']
-        elif self._service_name == "sensor_lumin":
-            device_class = "illuminance"
-            prefix = "Belysningsstyrke: "
-            unit_of_measurement = "Lux"
-            self._icon = "mdi:ceiling-light"
-
-            if 'illuminance' in self._device['param']:
-                self._init_value = self._device['param']['illuminance']
-        elif self._service_name == "sensor_power":
-            device_class = "power"
-            prefix = "Forbuk: "
-            unit_of_measurement = "Watt"
-
-            if 'wattage' in self._device['param']:
-                self._init_value = self._device['param']['wattage']
-        elif self._service_name  == "sensor_temp":
-            device_class = "temperature"
-            prefix = "Temperatur: "
-            unit_of_measurement = "°C"
-
-            if 'temperature' in self._device['param']:
-                self._init_value = self._device['param']['temperature']
-        elif self._service_name  == "scene_ctrl":
-            prefix = "Scene: "
-            self._value_template = "{{ value_json.val }}"
-            self._expire_after = 1
+import typing
 
 
-        self._device_class = device_class
-        self._name_prefix = prefix
-        self._unit_of_measurement = unit_of_measurement
+def battery(
+        device: typing.Any,
+        mqtt,
+        service,
+):
+    address = device["fimp"]["address"]
+    name = device["client"]["name"]
+    # todo add room
+    room = device["room"]
 
-    def get_component(self):
-        '''Returns MQTT component to HA'''
+    identifier = f"fh_{address}_battery"
+    state_topic = f"pt:j1/mt:evt{service['addr']}"
+    unit_of_measurement = "%"
+    component = {
+        "name": f"{name} (batteri)",
+        "object_id": identifier,
+        "unique_id": identifier,
+        "state_topic": state_topic,
+        "device_class": "battery",
+        "unit_of_measurement": unit_of_measurement,
+        "value_template": "{{ value_json.val | round(0) }}"
+    }
+    payload = json.dumps(component)
+    mqtt.publish(f"homeassistant/sensor/{identifier}/config", payload)
 
-        payload = {
-            "name": self._name,
-            "state_topic": self._state_topic,
-            "unit_of_measurement": self.unit_of_measurement,
-            "unique_id": self.unique_id,
-            "value_template": self._value_template,
+    # Queue statuses
+    status = None
+    if device.get("param") and device['param'].get('batteryPercentage'):
+        value = device['param']['batteryPercentage']
+        data = {
+            "props": {
+                "unit": unit_of_measurement
+            },
+            "serv": "battery",
+            "type": "evt.health.report",
+            "val": value,
         }
 
-        if self._device_class:
-            payload["device_class"] = self._device_class
+        payload = json.dumps(data)
+        status = (state_topic, payload)
+    return status
 
-        if self._expire_after:
-            payload["expire_after"] = self._expire_after
 
-        if self._icon:
-            payload["icon"] = self.icon
+def sensor_lumin(
+        device: typing.Any,
+        mqtt,
+        service,
+):
+    address = device["fimp"]["address"]
+    name = device["client"]["name"]
+    # todo add room
+    room = device["room"]
 
-        device = {
-            "topic": self._config_topic,
-            "payload": json.dumps(payload),
+    identifier = f"fh_{address}_illuminance"
+    state_topic = f"pt:j1/mt:evt{service['addr']}"
+    unit_of_measurement = "Lux"
+    component = {
+        "name": f"{name} (belysningsstyrke)",
+        "object_id": identifier,
+        "unique_id": identifier,
+        "state_topic": state_topic,
+        "device_class": "illuminance",
+        "unit_of_measurement": unit_of_measurement,
+        "value_template": "{{ value_json.val | round(0) }}"
+    }
+    payload = json.dumps(component)
+    mqtt.publish(f"homeassistant/sensor/{identifier}/config", payload)
+
+    # Queue statuses
+    status = None
+    if device.get("param") and device['param'].get('illuminance'):
+        value = device['param']['illuminance']
+        data = {
+            "props": {
+                "unit": unit_of_measurement
+            },
+            "serv": "sensor_lumin",
+            "type": "evt.sensor.report",
+            "val": value,
+            "val_t": "float",
         }
 
-        return device
+        payload = json.dumps(data)
+        status = (state_topic, payload)
+    return status
 
-    def get_init_state(self):
-        '''Return the initial state of the sensor'''
-        payload = {"val": self._init_value}
-        data = [
-            {"topic": self._state_topic, "payload": json.dumps(payload)},
-        ]
 
-        return data
+def sensor_temp(
+        device: typing.Any,
+        mqtt,
+        service,
+):
+    address = device["fimp"]["address"]
+    name = device["client"]["name"]
+    # todo add room
+    room = device["room"]
 
-    def handle_fimp(self, payload):
-        '''Do nothing'''
+    identifier = f"fh_{address}_temperature"
+    state_topic = f"pt:j1/mt:evt{service['addr']}"
+    unit_of_measurement = "°C"
+    component = {
+        "name": f"{name} (temperatur)",
+        "object_id": identifier,
+        "unique_id": identifier,
+        "state_topic": state_topic,
+        "device_class": "temperature",
+        "unit_of_measurement": unit_of_measurement,
+        "value_template": "{{ value_json.val | round(0) }}"
+    }
+    payload = json.dumps(component)
+    mqtt.publish(f"homeassistant/sensor/{identifier}/config", payload)
+
+    # Queue statuses
+    status = None
+    if device.get("param") and device['param'].get('temperature'):
+        value = device['param']['temperature']
+        data = {
+            "props": {
+                "unit": unit_of_measurement
+            },
+            "serv": "sensor_temp",
+            "type": "evt.sensor.report",
+            "val": value,
+            "val_t": "float",
+        }
+        payload = json.dumps(data)
+        status = (state_topic, payload)
+    return status
+
+
+def meter_elec(
+        device: typing.Any,
+        mqtt,
+        service,
+):
+    address = device["fimp"]["address"]
+    name = device["client"]["name"]
+    # todo add room
+    room = device["room"]
+
+    identifier = f"fh_{address}_meter_elec"
+    state_topic = f"pt:j1/mt:evt{service['addr']}"
+    component = {
+        "name": f"{name} (forbruk)",
+        "object_id": identifier,
+        "unique_id": identifier,
+        "state_topic": state_topic,
+        "device_class": "energy",
+        "state_class": "total_increasing",
+        "unit_of_measurement": "kWh",
+        "value_template": "{{ value_json.val }}"
+    }
+    payload = json.dumps(component)
+    mqtt.publish(f"homeassistant/sensor/{identifier}/config", payload)
+
+    # Queue statuses
+    status = None
+    if device.get("param") and device['param'].get('energy'):
+        value = device['param']['energy']
+        data = {
+            "props": {
+                "unit": "kWh"
+            },
+            "serv": "meter_elec",
+            "type": "evt.meter.report",
+            "val": value,
+        }
+
+        payload = json.dumps(data)
+        status = (state_topic, payload)
+    return status

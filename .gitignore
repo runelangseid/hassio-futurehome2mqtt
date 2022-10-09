@@ -11,9 +11,6 @@
 # Cache
 .pytest_cache/
 
-# Editors
-.vscode/
-
 # Misc
 .env
 man/

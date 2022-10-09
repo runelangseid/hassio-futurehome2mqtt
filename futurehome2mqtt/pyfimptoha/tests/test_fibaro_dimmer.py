@@ -20,6 +20,7 @@ Senors:
 class TestFibaroDimmer:
     def test_fibaro_dimmer_2(self):
         f = fimp.Client()
+        # todo load_json_device has moved to fimp.py
         f.load_json_device("discovery_fibaro_dimmer_2.json")
         discovery = f.get_discovery_mqtt()
         expected = list()
