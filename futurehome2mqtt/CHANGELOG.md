@@ -3,7 +3,7 @@
 * Huge code rewrite. Code base has been reduced
 * Most things from 0.1 should work
   * Dimmers for lightning
-  * Binary switches for appliances (not lightning)
+  * Binary switches for appliances and lightning
   * Sensors: battery, illuminance, temperature, electric meters
 * Modus switch is not re-implemented yet
 * Internal bridge for Dimmer lights have been removed, reducing complexity in addon

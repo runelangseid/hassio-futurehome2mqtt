@@ -1,8 +1,8 @@
 """
 Creates sensors in Home Assistant based on FIMP services
 """
-import typing
 import json
+import typing
 
 
 def battery(
