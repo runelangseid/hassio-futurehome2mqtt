@@ -62,6 +62,13 @@ def create_components(
                     mqtt=mqtt,
                     service=service,
                 )
+            elif service_name == "sensor_presence":
+                print(f"- Service: {service_name}")
+                status = sensor.sensor_presence(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
             elif service_name == "sensor_temp":
                 print(f"- Service: {service_name}")
                 status = sensor.sensor_temp(
