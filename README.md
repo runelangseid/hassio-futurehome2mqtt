@@ -23,6 +23,7 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
 * Sensors
   * Battery
   * Illuminance
+  * Presence
   * Temperature
   * Accumulated energy usage (kWh) (`meter_elec`) for devices supporting this
 
