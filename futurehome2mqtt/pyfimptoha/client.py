@@ -2,7 +2,7 @@ import json
 
 import pyfimptoha.fimp as fimp
 import pyfimptoha.homeassistant as homeassistant
-from pyfimptoha.mode import Mode
+import pyfimptoha.mode as mode
 
 
 class Client:
@@ -27,18 +27,15 @@ class Client:
             self._mqtt = mqtt
             mqtt.on_message = self.on_message
 
-        # Add Modus sensor (home, sleep, away and vacation)
-        # todo Find a way to auto discover the value. Sensor value is currently
-        # empty until changed by the system/user
         self.start()
 
     def start(self):
         mqtt = self._mqtt
 
-        # todo refactor Mode
-        # mode = Mode()
-        # message = mode.get_component()
-        # self.publish_messages([message])
+        # Create mode sensor  (home, away , sleep and vacation)
+        # todo Find a way to auto discover the value. Sensor value is currently
+        # empty until changed by the system/user
+        mode.publish(mqtt)
 
         # Send FIMP discover request
         topic_discover = "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:flow1"

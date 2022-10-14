@@ -26,14 +26,20 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
   * Presence
   * Temperature
   * Accumulated energy usage (kWh) (`meter_elec`) for devices supporting this
+* Modus (home, away, sleep and vacation)
+  * Set in entity `sensor.modus` (read only)
 
 
-### Untested in new version
+### Known issues
+
+* Modus sensor will have state unknown until it is updated in Futurehome
+
+
+### Untested in new version (0.1 vs 0.2)
 
 These things are probably no longer working
 
 * Scene control. Exposed as sensor. Tested with Fibaro button, and Namron 4 channel (K8)
-* Modus: home, away, sleep and vacation (`sensor.modus`, read only)
 
 # Configuration and installation
 
