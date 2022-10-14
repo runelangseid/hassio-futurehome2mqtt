@@ -1,6 +1,7 @@
 import json
 import time
 import paho.mqtt.client as client
+import pyfimptoha.cover as cover
 import pyfimptoha.sensor as sensor
 import pyfimptoha.light as light
 
@@ -42,9 +43,22 @@ def create_components(
             # Adding sensors
             # todo add more sensors: alarm_power?, sensor_power. see old sensor.py
             status = None
+
+            try:
+                _type = device['type']['type']
+            except KeyError:
+                _type = None
+
             if service_name == "battery":
                 print(f"- Service: {service_name}")
                 status = sensor.battery(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
+            elif _type == "blinds" and service_name == "out_lvl_switch":
+                print(f"- Service: {service_name} (as blind/cover)")
+                status = cover.blind(
                     device=device,
                     mqtt=mqtt,
                     service=service,
@@ -76,6 +90,7 @@ def create_components(
                     mqtt=mqtt,
                     service=service,
                 )
+
             if status:
                 statuses.append(status)
 
