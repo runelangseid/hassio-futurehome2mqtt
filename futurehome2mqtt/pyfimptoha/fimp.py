@@ -15,6 +15,32 @@ def send_discovery_request(client: mqtt):
         client.publish(topic, payload)
 
 
+def send_mode_request(client: mqtt):
+    """Request Futurehome mode"""
+
+    topic = "pt:j1/mt:cmd/rt:app/rn:vinculum/ad:1"
+    payload = {
+        "props": {},
+        "serv": "vinculum",
+        "tags": [],
+        "type": "cmd.pd7.request",
+        "val_t": "object",
+        "ver": "1",
+        "val": {
+            "cmd": "get",
+            "param": {
+                "components": [
+                    "house"
+                ]
+            }
+        },
+        "resp_to": "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:mode"
+    }
+    payload = json.dumps(payload)
+    print('Requesting current mode status')
+    client.publish(topic, payload)
+
+
 # todo refactor. Used for tests
 def load_json_device(self, filename):
     data = "{}"

@@ -1,4 +1,5 @@
 import json
+import time
 
 import pyfimptoha.fimp as fimp
 import pyfimptoha.homeassistant as homeassistant
@@ -32,12 +33,12 @@ class Client:
     def start(self):
         mqtt = self._mqtt
 
-        # Create mode sensor  (home, away , sleep and vacation)
-        # todo Find a way to auto discover the value. Sensor value is currently
-        # empty until changed by the system/user
-        mode.publish(mqtt)
+        # Request FIMP mode
+        topic_receive_mode = "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:mode"
+        mqtt.subscribe(topic_receive_mode)
+        fimp.send_mode_request(mqtt)
 
-        # Send FIMP discover request
+        # Request FIMP devices
         topic_discover = "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:flow1"
         mqtt.subscribe(topic_discover)
         fimp.send_discovery_request(mqtt)
@@ -59,6 +60,13 @@ class Client:
                 mqtt=self._mqtt,
                 selected_devices=self._selected_devices,
             )
+        elif msg.topic == "pt:j1/mt:rsp/rt:app/rn:homeassistant/ad:mode":
+            # Create mode sensor  (home, away, sleep and vacation)
+            data = json.loads(payload)
+            mode.create(
+                mqtt=self._mqtt,
+                data=data,
+            )
         elif msg.topic == "homeassistant/status" and payload == "online":
-            print(msg.topic)
+            # Home Assistant was restarted - Push everything again
             self.start()

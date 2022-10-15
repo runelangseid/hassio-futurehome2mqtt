@@ -27,12 +27,7 @@ Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
   * Temperature
   * Accumulated energy usage (kWh) (`meter_elec`) for devices supporting this
 * Modus (home, away, sleep and vacation)
-  * Set in entity `sensor.modus` (read only)
-
-
-### Known issues
-
-* Modus sensor will have state unknown until it is updated in Futurehome
+  * Set in entity `sensor.fh_mode` (read only)
 
 
 ### Untested in new version (0.1 vs 0.2)
