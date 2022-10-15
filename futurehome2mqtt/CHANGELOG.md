@@ -1,3 +1,11 @@
+## 0.2.2
+
+* Added mode sensor as `sensor.fh_mode` (home, away, sleep, vacation). Read only
+
+## 0.2.1
+
+* Added presence sensors
+
 ## 0.2
 
 * Huge code rewrite. Code base has been reduced

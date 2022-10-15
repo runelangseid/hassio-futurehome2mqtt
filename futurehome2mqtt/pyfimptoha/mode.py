@@ -1,13 +1,13 @@
 import json
+import time
 
-# todo re-implement
-class Mode():
-    '''Implementation of MQTT sensor
-    https://www.home-assistant.io/integrations/sensor.mqtt
 
-    Add Hub mode sensor (home, away, sleep, vacation)
+def create(mqtt, data):
+    """ Futurehome mode switch is stored as a sensor with the values
+    home, away, sleep and vaction
+
+    How to read mode switch (home, away, sleep, vacation)
     Topic: pt:j1/mt:evt/rt:app/rn:vinculum/ad:1
-
     {
     "ctime": "....",
     "serv": "vinculum",
@@ -15,41 +15,47 @@ class Mode():
         "component": "hub",
         "id": "mode",
         "param": {
-        "current": "home",
-        "prev": "home"
+            "current": "home",
+            "prev": "home"
         }
     },
     "val_t": "object",
     "ver": "1"
     }
-    '''
+    """
 
-    _config_topic = None
-    _name = None
-    _state_topic = None
-    _value_template = None
+    _mode = data.get("val").get("param").get("house").get("mode")
 
-    def __init__(self):
-        '''Create sensor `mode`.'''
-        self._config_topic = "homeassistant/sensor/mode/config"
-        self._name = "Modus"
-        self._state_topic = "pt:j1/mt:evt/rt:app/rn:vinculum/ad:1"
-        self._value_template = "{% if value_json.val.id == 'mode' %}{{ value_json.val.param.current }}{% else %}{{states('sensor.modus')}}{% endif %}"
+    name = "Modus"
+    value_template = \
+        "{% if value_json.val.id == 'mode' %}{{ value_json.val.param.current }}" \
+        "{% else %}{{states('sensor.fh_mode')}}{% endif %}"
 
-    def get_component(self):
-        '''Returns MQTT component to HA'''
+    identifier = f"fh_mode"
+    state_topic = "pt:j1/mt:evt/rt:app/rn:vinculum/ad:1"
+    component = {
+        "icon": "mdi:hexagon",
+        "name": f"{name}",
+        "object_id": identifier,
+        "unique_id": identifier,
+        "state_topic": state_topic,
+        "value_template": value_template,
+    }
 
-        payload = {
-            "icon": "mdi:hexagon",
-            "name": self._name,
-            "state_topic": self._state_topic,
-            "unique_id": 'mode',
-            "value_template": self._value_template,
+    payload = json.dumps(component)
+    mqtt.publish(f"homeassistant/sensor/{identifier}/config", payload)
+    print(f"Creating mode sensor")
+
+    mqtt.loop()
+    time.sleep(1)
+    print(f"Publishing mode status \"{_mode}\"")
+    payload = {
+        "val": {
+            "id": "mode",
+            "param": {
+                "current": _mode
+            }
         }
-
-        device = {
-            "topic": self._config_topic,
-            "payload": json.dumps(payload),
-        }
-
-        return device
+    }
+    payload = json.dumps(payload)
+    mqtt.publish(state_topic, payload)
