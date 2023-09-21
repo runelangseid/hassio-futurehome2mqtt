@@ -3,6 +3,7 @@ import time
 import paho.mqtt.client as client
 import pyfimptoha.sensor as sensor
 import pyfimptoha.light as light
+import pyfimptoha.lock as lock
 
 
 def create_components(
@@ -78,6 +79,17 @@ def create_components(
                 )
             if status:
                 statuses.append(status)
+
+            # Door lock
+            elif service_name == "door_lock":
+                print(f"- Service: {service_name}")
+                status = lock.door_lock(
+                    device=device,
+                    mqtt=mqtt,
+                    service=service,
+                )
+                if status:
+                    statuses.append(status)
 
             # Lights
             elif functionality == "lighting":
