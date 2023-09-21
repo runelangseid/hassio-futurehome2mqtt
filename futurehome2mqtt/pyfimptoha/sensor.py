@@ -60,7 +60,7 @@ def sensor_lumin(
 
     identifier = f"fh_{address}_illuminance"
     state_topic = f"pt:j1/mt:evt{service['addr']}"
-    unit_of_measurement = "Lux"
+    unit_of_measurement = "lx"
     component = {
         "name": f"{name} (belysningsstyrke)",
         "object_id": identifier,
