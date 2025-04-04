@@ -12,7 +12,12 @@
         "component": null,
         "id": null,
         "param": {
-            "components": ["device"]
+            "components": [
+                "device",
+                "room",
+                "shortcut",
+                "house"
+            ]
         },
         "requestId": 7294000000007
     },

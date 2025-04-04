@@ -15,3 +15,4 @@
 .env
 man/
 venv/
+**/.DS_Store

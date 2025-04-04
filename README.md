@@ -8,45 +8,74 @@ Smarthub with Home Assistant by using the local MQTT broker inside the hub.
 While it is possible to configure Home Assistant the FIMP protocol
 directly is a lot of work, and auto discovery is not possible.
 
-This addon configure devices and their capabilities from Future Home in Home Assistant using MQTT Discovery.
+This addon configure devices and their capabilities from Future Home in Home Assistant using [MQTT Discovery](https://www.home-assistant.io/integrations/mqtt/).
 
 Read more about the [FIMP protocol](https://github.com/futurehomeno/fimp-api).
 
-
 ## Supported Futurehome devices
 
-* Appliances (switches in HA)
-  * Wall plugs like Fibaro Wall plug is supported
-* Lights (lights in HA)
-  * Dimmers - On/Off and brightness. Tested with Fibaro dimmer 2
-  * Switches - On/Off. Tested with Fibaro wall plug
-* Sensors
-  * Battery
-  * Illuminance
-  * Presence
-  * Temperature
-  * Accumulated energy usage (kWh) (`meter_elec`) for devices supporting this
-* Modus (home, away, sleep and vacation)
-  * Set in entity `sensor.fh_mode` (read only)
+- Appliances (switches in HA)
+  - Wall plugs like Fibaro Wall plug is supported
+- Boiler
+  - Connected with a relay device (e.g Futurehome Puck Relay)
+- Lights (lights in HA)
+  - Dimmers - On/Off and brightness. Tested with Fibaro dimmer 2
+  - Switches - On/Off. Tested with Fibaro wall plug
+- Locks
+  - Basic unlock/lock for doorlocks. Tested with IDLock 150 (Unlock commands are currently not supported on Zigbee)
+- Thermostats
+  - Set mode
+  - Set target temp
+  - Read current measured temperature (Note that the temperature sensor that have the "Set as main temp sensor" checkbox checked in the Futurehome app will be used)
+  - Change fan speed if device supports it (e.g Sensibo)
+- Sensors
+  - Battery
+  - Illuminance
+  - Presence
+  - Temperature
+  - Humidity
+  - Contact
+  - Meter_elec sensors (varies from device to device if they are supported)
+    - Accumulated energy usage (kWh)
+    - Power (W)
+    - Voltage (V)
+    - Current (A)
+    - p_import (W)
+    - e_import (kWh)
+    - p_import_react (var)
+    - p_export_react (var)
+- Modus (home, away, sleep and vacation)
+  - Set in entity `select.fh_mode`
+- Shortcuts
 
+## Known issues / limitations
 
-### Untested in new version (0.1 vs 0.2)
-
-These things are probably no longer working
-
-* Scene control. Exposed as sensor. Tested with Fibaro button, and Namron 4 channel (K8)
+- Chargepoint (FH Charge, Easee, Zaptec etc.) is not currently supported
+- Scene control (Fibaro button, Heatit Z-Push 4 etc.) is not currently supported
+- Blinds are not currently supported
+- Sirens are not currently supported
+- Leak detectors are not currently supported
+- Garage doors are not currently supported
+- Music players (Sonos etc.) is not currently supported - use Sonos integration in Home Assistant
+- Some devices might still use sensor_power (deprecated) and sensor_voltage (deprecated) instead of `meter_elec`. This needs to be fixed by Futurehome.
+- Shortcuts triggered externally (e.g from Futurehome app) is not logged in logbook
 
 # Configuration and installation
 
+> [!IMPORTANT]
+>
+> You need to enable local API access over MQTT from the Futurehome app.
+>
+> `Settings -> household -> hub settings -> local API setup`
+
 ### 1. Home Assistant configuration
 
-Home Assistant must use the MQTT broker provided by the Futurehome Smart hub.
+Home Assistant must use the MQTT broker provided by the Futurehome Smarthub.
 It's recommended to configure MQTT via GUI, and not via `.yaml`
 
+Settings -> Device & services -> add integration -> search for `MQTT` -> select `MQTT` -> fill in hub IP and credentials. (NOTE that port should be 1884):
+
 ```
-# MQTT
-mqtt:
-  # Futurehome smart hub
   broker: *hub ip*
   username: *username*
   password: *password*
@@ -57,11 +86,21 @@ mqtt:
 
 ### 2. Install add-on
 
-1) Add this repo as an add-on repository
-2) Install the addon 'Futurehome FIMP to MQTT'
-3) Configure the addon with the same parameters as before
-4) Start it. Supported devices should appear in the Home Assistant UI
-
+1. Add this repo as an add-on repository
+   - Settings -> Add-ons -> Add-on store -> 3 dots in top right -> repositories -> paste link to this repository -> add
+2. Install the addon 'Futurehome FIMP to MQTT'
+   - Select `Futurehome FIMP integration` in the Add-on store -> install
+3. Configure the addon with the same parameters as before
+   - If you want to include or exclude certain devices, please specify with radio buttons, and then the devices in `selected_devices` with this format: \<adapter>\_\<address>. If you want to include all supported devices, leave radio button on `default`. Devices without a room will be ignored.
+      - `adapter` is `zw` for Z-Wave devices
+      - `adapter` is `zb` for Zigbee devices
+      - For other adapters the name of the adapter is used - e.g `sensibo`
+      - Examples:
+        - zw_22
+        - zb_47
+        - sensibo_abCDEFgE
+   - Toggle the switches to your desired likings for mode and shortcuts.
+4. Start it. Supported devices should appear in the Home Assistant UI
 
 # Development
 
@@ -72,6 +111,7 @@ which provides a full Home Assistant setup.
 ## Using virtual env
 
 ### Git clone and installation
+
 ```
 git clone https://github.com/runelangseid/hassio-futurehome2mqtt
 cd hassio-futurehome2mqtt/futurehome2mqtt
@@ -84,64 +124,13 @@ pip install -r requirements.txt
 ### Configuration
 
 1. Setup configuration
-    ```
-    cp env-dist .env
-    ```
+   ```bash
+   cp env-dist .env
+   ```
 2. Edit `.env` and fill in hostnames and credentials
 
-3. Run `source .env && python run.py serve`
-
+3. Run `python run.py`
 
 # Alternative FIMP integrations
 
-Below are examples on how to add Wall plugs and sensors manually to Home Assistant
-using MQTT without the use of this addon.
-
-## Wall plug (Fibaro)
-
-Replace '34' with the address for the device in Futurehome.
-
-```
-mqtt:
-  #
-  # Kontor
-  #
-  # Wall plug
-  switch: 
-    - name: "Wall plug (kontor)"
-      state_topic:   "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:out_bin_switch/ad:34_0"
-      command_topic: "pt:j1/mt:cmd/rt:dev/rn:zw/ad:1/sv:out_bin_switch/ad:34_0"
-      value_template: '{{ value_json.val }}'
-      payload_on:  '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":true,"val_t":"bool"}'
-      payload_off: '{"props":{},"serv":"out_bin_switch","tags":[],"type":"cmd.binary.set","val":false,"val_t":"bool"}'
-      state_on: true
-      state_off: false
-```
-
-## Multi Sensor (Fibaro)
-
-Replace '37' with the address for the device in Futurehome.
-
-```
-mqtt:
-  # Fibaro Eye
-  sensor:
-    - name: "Batteri Kontor"
-      state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:battery/ad:37_0"
-      unit_of_measurement: '%'
-      value_template: "{{ value_json.val }}"
-  
-    - name: "Bevegelse Kontor"
-      state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_presence/ad:37_0"
-      value_template: "{{ value_json.val }}"
-  
-    - name: "Temperatur Kontor"
-      state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_temp/ad:37_0"
-      unit_of_measurement: '°C'
-      value_template: "{{ value_json.val }}"
-  
-    - name: "Lysstyrke Kontor"
-      state_topic: "pt:j1/mt:evt/rt:dev/rn:zw/ad:1/sv:sensor_lumin/ad:37_0"
-      unit_of_measurement: 'Lux'
-      value_template: "{{ value_json.val }}"
-```
+Look at [here](yaml_manual_examples.md) for examples on how to add Wall plugs and sensors manually in `configuration.yaml`, using MQTT without the use of this addon.
